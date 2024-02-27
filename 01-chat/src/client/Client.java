@@ -3,6 +3,7 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -15,7 +16,7 @@ public class Client {
 
     private static final String hostName = "localhost";
 
-    private static final int portNumber = 12345;
+    private static final int serverPortNumber = 12345;
 
     private static Socket socketTCP = null;
 
@@ -30,15 +31,33 @@ public class Client {
         try {
 
             // create TCP socket
-            socketTCP = new Socket(hostName, portNumber);
+            socketTCP = new Socket(hostName, serverPortNumber);
 
             // create UDP socket
             socketUDP = new DatagramSocket();
 
-            // create thread to recive messages
-            Thread receiveThread = new Thread(() -> {
+            // create thread to receive UDP messages
+            Thread receiveUDPThread = new Thread(() -> {
                 try {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socketTCP.getInputStream()));
+                    byte[] receiveData = new byte[1024];
+                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+                    while (!quit) {
+                        socketUDP.receive(receivePacket);
+                        String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(),
+                                "UTF-8");
+                        System.out.println(receivedMessage);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            receiveUDPThread.start();
+
+            // create thread to recive TCP messages
+            Thread receiveTCPThread = new Thread(() -> {
+                try {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(socketTCP.getInputStream(), "UTF-8"));
                     String message;
                     while (!quit && ((message = in.readLine()) != null)) {
                         System.out.println(message);
@@ -47,29 +66,30 @@ public class Client {
                     e.printStackTrace();
                 }
             });
-            receiveThread.start();
+            receiveTCPThread.start();
 
             // create thread to send messages
             Thread sendThread = new Thread(() -> {
                 try {
-                    PrintWriter out = new PrintWriter(socketTCP.getOutputStream(), true);
+                    PrintWriter out = new PrintWriter(new OutputStreamWriter(socketTCP.getOutputStream(), "UTF-8"),
+                            true);
                     BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-                    // sending nick to server
-                    out.println(nick);
+                    // sending nick, address and UDP port to server
+                    out.println(
+                            nick + " " + InetAddress.getLocalHost().getHostAddress() + " " + socketUDP.getLocalPort());
 
                     String input;
                     while ((input = userInput.readLine()) != null) {
                         if (input.startsWith("/quit")) {
                             out.println("[Q] " + nick + " X");
-                            quit = true;
-                            break;
+                            System.exit(0);
                         } else if (input.startsWith("/U ")) {
                             String messageToSend = input.substring(3);
 
                             byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
                             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
-                                    InetAddress.getByName(hostName), portNumber);
+                                    InetAddress.getByName(hostName), serverPortNumber);
                             socketUDP.send(sendPacket);
                         } else {
                             out.println("[TCP] " + nick + " " + input);
@@ -81,7 +101,8 @@ public class Client {
             });
             sendThread.start();
 
-            receiveThread.join();
+            receiveTCPThread.join();
+            receiveUDPThread.join();
             sendThread.join();
 
         } catch (Exception e) {

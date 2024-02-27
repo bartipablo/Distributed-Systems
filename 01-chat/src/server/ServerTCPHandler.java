@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ public class ServerTCPHandler {
 
     public void addSocket(String nick, Socket socket) throws IOException {
         sockets.put(nick, socket);
-        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
         printWriters.put(nick, writer);
     }
 

@@ -13,11 +13,11 @@ public class Server {
 
         System.out.println("CHAT SERVER");
 
-        // CONFIGURATION -------------------
+        // CONFIGURATION -----------------------
         int portNumber = 12345;
         ServerSocket serverSocketTCP = null;
         DatagramSocket serverSocketUDP = null;
-        // ---------------------------------
+        // -------------------------------------
 
         try {
             // create TCP server socket
@@ -25,20 +25,31 @@ public class Server {
             ServerTCPHandler serverTCPHandler = new ServerTCPHandler();
 
             // create UDP server socket
+            ServerUDPHandler serverUDPHandler = new ServerUDPHandler();
             serverSocketUDP = new DatagramSocket(portNumber);
-            Thread clientUDPThread = new Thread(new ClientUDPThread(serverTCPHandler, serverSocketUDP));
-            clientUDPThread.start();
+            Thread serviceUDP = new Thread(new ServiceUDP(serverSocketUDP, serverUDPHandler));
+            serviceUDP.start();
 
             while (true) {
                 // accept client
                 Socket clientSocket = serverSocketTCP.accept();
 
+                // get client IP adrress
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                String clientNick = in.readLine();
+                String initialMessage = in.readLine();
+
+                String[] parts = initialMessage.split(" ", 3);
+                String clientNick = parts[0];
+                String clientAddress = parts[1];
+                String clientPort = parts[2];
+
                 System.out.println("client connected: " + clientNick);
 
+                serverUDPHandler.addClientInfo(new ClientInfo(clientNick, clientAddress, Integer.parseInt(clientPort)));
+
                 serverTCPHandler.addSocket(clientNick, clientSocket);
-                Thread clientTCPThread = new Thread(new ClientTCPThread(clientNick, clientSocket, serverTCPHandler));
+                Thread clientTCPThread = new Thread(
+                        new ServiceTCP(clientNick, clientSocket, serverTCPHandler, serverUDPHandler));
                 clientTCPThread.start();
             }
 

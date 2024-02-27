@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class ClientTCPThread implements Runnable {
+public class ServiceTCP implements Runnable {
 
     private final String userName;
 
@@ -13,16 +13,20 @@ public class ClientTCPThread implements Runnable {
 
     private final ServerTCPHandler serverTCPHandler;
 
-    public ClientTCPThread(String userName, Socket socket, ServerTCPHandler serverTCPHandler) {
+    private final ServerUDPHandler serverUDPHandler;
+
+    public ServiceTCP(String userName, Socket socket, ServerTCPHandler serverTCPHandler,
+            ServerUDPHandler serverUDPHandler) {
         this.userName = userName;
         this.socket = socket;
         this.serverTCPHandler = serverTCPHandler;
+        this.serverUDPHandler = serverUDPHandler;
     }
 
     @Override
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             String message;
             while ((message = in.readLine()) != null) {
 
@@ -36,6 +40,7 @@ public class ClientTCPThread implements Runnable {
                 } else if (messageType.equals("[Q]")) {
                     System.out.println("client disconnected: " + userName);
                     serverTCPHandler.removeSocket(userName);
+                    serverUDPHandler.removeClientInfo(nick);
                     break;
                 }
 
