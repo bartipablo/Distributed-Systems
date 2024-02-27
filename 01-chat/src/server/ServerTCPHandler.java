@@ -9,8 +9,10 @@ import java.util.Map;
 
 public class ServerTCPHandler {
 
+    // mapping of nick to socket
     private final Map<String, Socket> sockets = new HashMap<>();
 
+    // mapping of nick to print writer
     private final Map<String, PrintWriter> printWriters = new HashMap<>();
 
     public void addSocket(String nick, Socket socket) throws IOException {

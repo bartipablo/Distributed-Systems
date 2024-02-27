@@ -9,24 +9,24 @@ import java.net.Socket;
 
 public class Server {
 
+    private static final int SERVER_PORT_NUMBER = 12345;
+
     public static void main(String[] args) throws IOException {
 
         System.out.println("CHAT SERVER");
 
-        // CONFIGURATION -----------------------
-        int portNumber = 12345;
         ServerSocket serverSocketTCP = null;
         DatagramSocket serverSocketUDP = null;
-        // -------------------------------------
 
         try {
             // create TCP server socket
-            serverSocketTCP = new ServerSocket(portNumber);
+            serverSocketTCP = new ServerSocket(SERVER_PORT_NUMBER);
             ServerTCPHandler serverTCPHandler = new ServerTCPHandler();
 
             // create UDP server socket
+            serverSocketUDP = new DatagramSocket(SERVER_PORT_NUMBER);
             ServerUDPHandler serverUDPHandler = new ServerUDPHandler();
-            serverSocketUDP = new DatagramSocket(portNumber);
+            
             Thread serviceUDP = new Thread(new ServiceUDP(serverSocketUDP, serverUDPHandler));
             serviceUDP.start();
 
@@ -34,7 +34,7 @@ public class Server {
                 // accept client
                 Socket clientSocket = serverSocketTCP.accept();
 
-                // get client IP adrress
+                // reading ClientInfo
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String initialMessage = in.readLine();
 
@@ -46,8 +46,8 @@ public class Server {
                 System.out.println("client connected: " + clientNick);
 
                 serverUDPHandler.addClientInfo(new ClientInfo(clientNick, clientAddress, Integer.parseInt(clientPort)));
-
                 serverTCPHandler.addSocket(clientNick, clientSocket);
+                
                 Thread clientTCPThread = new Thread(
                         new ServiceTCP(clientNick, clientSocket, serverTCPHandler, serverUDPHandler));
                 clientTCPThread.start();

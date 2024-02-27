@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerUDPHandler {
+
     private final List<ClientInfo> clientsInfo = new ArrayList<>();
+
 
     public void addClientInfo(ClientInfo clientInfo) {
         clientsInfo.add(clientInfo);

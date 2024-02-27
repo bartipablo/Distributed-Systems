@@ -15,134 +15,101 @@ public class Client {
 
     private static String nick;
 
-    private static final String hostName = "localhost";
+    private static final String HOST_NAME = "localhost";
 
     private static final String MULTICAST_ADDRESS = "239.0.0.1";
 
-    private static final int serverPortNumber = 12345;
+    private static final int SERVER_PORT_NUMBER = 12345;
 
-    private static Socket socketTCP = null;
-
-    private static DatagramSocket socketUDP = null;
-
-    private static MulticastSocket multicastSocket = null;
-
-    private static boolean quit = false;
+    private static final int CLIENT_MULTICAST_PORT_NUMBER = 12346;
 
     public static void main(String[] args) throws IOException {
 
         readInputArguments(args);
 
+        Socket socketTCP = null;
+        DatagramSocket socketUDP = null;
+        MulticastSocket multicastSocket = null;
+
         try {
 
             // create TCP socket
-            socketTCP = new Socket(hostName, serverPortNumber);
+            socketTCP = new Socket(HOST_NAME, SERVER_PORT_NUMBER);
 
-            // create UDP socket
+
+            // create UDP socket   
             socketUDP = new DatagramSocket();
 
+
             // create UDP multicast socket
-            multicastSocket = new MulticastSocket(serverPortNumber + 1);
+            multicastSocket = new MulticastSocket(CLIENT_MULTICAST_PORT_NUMBER);
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             multicastSocket.joinGroup(group);
 
-            // Wątek do odbierania wiadomości z adresu multicastowego
-            Thread receiveMulticastThread = new Thread(() -> {
-                try {
-                    byte[] receiveData = new byte[1024];
-                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-                    while (!quit) {
-                        multicastSocket.receive(receivePacket);
-                        String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(),
-                                "UTF-8");
-                        System.out.println(receivedMessage);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            // create thread to receive UDP multicast messages
+            Thread receiveMulticastThread = new Thread(new ReciveUDPMulticast(multicastSocket));
             receiveMulticastThread.start();
 
-            // create thread to receive UDP messages
-            Thread receiveUDPThread = new Thread(() -> {
-                try {
-                    byte[] receiveData = new byte[1024];
-                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-                    while (!quit) {
-                        socketUDP.receive(receivePacket);
-                        String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(),
-                                "UTF-8");
-                        System.out.println(receivedMessage);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            // create thread to receive UDP messages
+            Thread receiveUDPThread = new Thread(new ReciveUDP(socketUDP));
             receiveUDPThread.start();
 
+
             // create thread to recive TCP messages
-            Thread receiveTCPThread = new Thread(() -> {
-                try {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socketTCP.getInputStream(), "UTF-8"));
-                    String message;
-                    while (!quit && ((message = in.readLine()) != null)) {
-                        System.out.println(message);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            Thread receiveTCPThread = new Thread(new ReciveTCP(socketTCP));
             receiveTCPThread.start();
 
-            // create thread to send messages
-            Thread sendThread = new Thread(() -> {
-                try {
-                    PrintWriter out = new PrintWriter(new OutputStreamWriter(socketTCP.getOutputStream(), "UTF-8"),
-                            true);
-                    BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-                    // sending nick, address and UDP port to server
-                    out.println(
-                            nick + " " + InetAddress.getLocalHost().getHostAddress() + " " + socketUDP.getLocalPort());
+            
+            // chat API
+            PrintWriter out = new PrintWriter(new OutputStreamWriter(socketTCP.getOutputStream(), "UTF-8"), true);
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-                    String input;
-                    while ((input = userInput.readLine()) != null) {
-                        if (input.startsWith("/quit")) {
-                            out.println("[Q] " + nick + " X");
-                            System.exit(0);
-                        } else if (input.startsWith("/U ")) {
-                            String messageToSend = input.substring(3);
+            out.println(
+                nick + " " + InetAddress.getLocalHost().getHostAddress() + " " + socketUDP.getLocalPort());
 
-                            byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
-                            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
-                                    InetAddress.getByName(hostName), serverPortNumber);
-                            socketUDP.send(sendPacket);
-                        } else if (input.startsWith("/M")) {
-                            String messageToSend = input.substring(3);
+            String input;
+            while ((input = userInput.readLine()) != null) {
+                
+                if (input.startsWith("/quit")) {
+                    out.println("[Q] " + nick + " X");
+                    break;
+                } 
 
-                            byte[] sendData = (nick + ": " + messageToSend).getBytes();
-                            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
-                                    InetAddress.getByName(MULTICAST_ADDRESS), serverPortNumber + 1);
-                            multicastSocket.send(sendPacket);
-                        } else {
-                            out.println("[TCP] " + nick + " " + input);
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                else if (input.startsWith("/U ")) {
+                    String messageToSend = input.substring(3);
+
+                    byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                        InetAddress.getByName(HOST_NAME), SERVER_PORT_NUMBER);
+                    socketUDP.send(sendPacket);
+                } 
+
+                else if (input.startsWith("/M")) {
+                    String messageToSend = input.substring(3);
+
+                    byte[] sendData = (nick + ": " + messageToSend).getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                        InetAddress.getByName(MULTICAST_ADDRESS), CLIENT_MULTICAST_PORT_NUMBER);
+                    multicastSocket.send(sendPacket);
+                    } 
+                    
+                else {
+                    out.println("[TCP] " + nick + " " + input);
                 }
-            });
-            sendThread.start();
-
-            receiveTCPThread.join();
-            receiveUDPThread.join();
-            sendThread.join();
-
-        } catch (Exception e) {
+            }
+        } catch (IOException e) {
             e.printStackTrace();
-        } finally {
+        }
+         finally {
+            if (socketUDP != null) {
+                socketUDP.close();
+            }
+            if (multicastSocket != null) {
+                multicastSocket.close();
+            }
             if (socketTCP != null) {
                 socketTCP.close();
             }
