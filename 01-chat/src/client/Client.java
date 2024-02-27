@@ -1,7 +1,12 @@
+package client;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
@@ -12,7 +17,9 @@ public class Client {
 
     private static final int portNumber = 12345;
 
-    private static Socket socket = null;
+    private static Socket socketTCP = null;
+
+    private static DatagramSocket socketUDP = null;
 
     private static boolean quit = false;
 
@@ -21,13 +28,17 @@ public class Client {
         readInputArguments(args);
 
         try {
-            // create socket
-            socket = new Socket(hostName, portNumber);
+
+            // create TCP socket
+            socketTCP = new Socket(hostName, portNumber);
+
+            // create UDP socket
+            socketUDP = new DatagramSocket();
 
             // create thread to recive messages
             Thread receiveThread = new Thread(() -> {
                 try {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(socketTCP.getInputStream()));
                     String message;
                     while (!quit && ((message = in.readLine()) != null)) {
                         System.out.println(message);
@@ -41,7 +52,7 @@ public class Client {
             // create thread to send messages
             Thread sendThread = new Thread(() -> {
                 try {
-                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                    PrintWriter out = new PrintWriter(socketTCP.getOutputStream(), true);
                     BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
                     // sending nick to server
@@ -53,8 +64,16 @@ public class Client {
                             out.println("[Q] " + nick + " X");
                             quit = true;
                             break;
+                        } else if (input.startsWith("/U ")) {
+                            String messageToSend = input.substring(3);
+
+                            byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
+                            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                                    InetAddress.getByName(hostName), portNumber);
+                            socketUDP.send(sendPacket);
+                        } else {
+                            out.println("[TCP] " + nick + " " + input);
                         }
-                        out.println("[TCP] " + nick + " " + input);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -68,8 +87,8 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (socket != null) {
-                socket.close();
+            if (socketTCP != null) {
+                socketTCP.close();
             }
         }
     }

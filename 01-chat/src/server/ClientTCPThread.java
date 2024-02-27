@@ -1,9 +1,11 @@
+package server;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class ClientThread implements Runnable {
+public class ClientTCPThread implements Runnable {
 
     private final String userName;
 
@@ -11,7 +13,7 @@ public class ClientThread implements Runnable {
 
     private final ServerTCPHandler serverTCPHandler;
 
-    public ClientThread(String userName, Socket socket, ServerTCPHandler serverTCPHandler) {
+    public ClientTCPThread(String userName, Socket socket, ServerTCPHandler serverTCPHandler) {
         this.userName = userName;
         this.socket = socket;
         this.serverTCPHandler = serverTCPHandler;
