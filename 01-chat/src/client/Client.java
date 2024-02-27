@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.Socket;
 
 public class Client {
@@ -16,11 +17,15 @@ public class Client {
 
     private static final String hostName = "localhost";
 
+    private static final String MULTICAST_ADDRESS = "239.0.0.1";
+
     private static final int serverPortNumber = 12345;
 
     private static Socket socketTCP = null;
 
     private static DatagramSocket socketUDP = null;
+
+    private static MulticastSocket multicastSocket = null;
 
     private static boolean quit = false;
 
@@ -35,6 +40,29 @@ public class Client {
 
             // create UDP socket
             socketUDP = new DatagramSocket();
+
+            // create UDP multicast socket
+            multicastSocket = new MulticastSocket(serverPortNumber + 1);
+            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
+            multicastSocket.joinGroup(group);
+
+            // Wątek do odbierania wiadomości z adresu multicastowego
+            Thread receiveMulticastThread = new Thread(() -> {
+                try {
+                    byte[] receiveData = new byte[1024];
+                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+                    while (!quit) {
+                        multicastSocket.receive(receivePacket);
+                        String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(),
+                                "UTF-8");
+                        System.out.println(receivedMessage);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            receiveMulticastThread.start();
 
             // create thread to receive UDP messages
             Thread receiveUDPThread = new Thread(() -> {
@@ -91,6 +119,13 @@ public class Client {
                             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
                                     InetAddress.getByName(hostName), serverPortNumber);
                             socketUDP.send(sendPacket);
+                        } else if (input.startsWith("/M")) {
+                            String messageToSend = input.substring(3);
+
+                            byte[] sendData = (nick + ": " + messageToSend).getBytes();
+                            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                                    InetAddress.getByName(MULTICAST_ADDRESS), serverPortNumber + 1);
+                            multicastSocket.send(sendPacket);
                         } else {
                             out.println("[TCP] " + nick + " " + input);
                         }
