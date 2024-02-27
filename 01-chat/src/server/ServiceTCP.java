@@ -46,7 +46,9 @@ public class ServiceTCP implements Runnable {
 
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("The connection to the customer was broken: " + userName);
+            serverTCPHandler.removeSocket(userName);
+            serverUDPHandler.removeClientInfo(userName);
         }
     }
 }
