@@ -21,13 +21,13 @@ public class Client {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             multicastSocket.joinGroup(group);
 
-            Thread receiveMulticastThread = new Thread(new ReciveUDPMulticast(multicastSocket));
+            ReciveUDPMulticast receiveMulticastThread = new ReciveUDPMulticast(multicastSocket);
             receiveMulticastThread.start();
 
-            Thread receiveUDPThread = new Thread(new ReciveUDP(socketUDP));
+            ReciveUDP receiveUDPThread = new ReciveUDP(socketUDP);
             receiveUDPThread.start();
 
-            Thread receiveTCPThread = new Thread(new ReciveTCP(socketTCP));
+            ReciveTCP receiveTCPThread = new ReciveTCP(socketTCP);
             receiveTCPThread.start();
 
             PrintWriter out = new PrintWriter(new OutputStreamWriter(socketTCP.getOutputStream(), "UTF-8"), true);
@@ -39,7 +39,7 @@ public class Client {
             while ((input = userInput.readLine()) != null) {
                 if (input.startsWith("/quit")) {
                     out.println("[Q] " + nick + " X");
-                    System.exit(0);
+                    break;
                 } else if (input.startsWith("/U ")) {
                     String messageToSend = input.substring(3);
                     byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
@@ -55,6 +55,18 @@ public class Client {
                 } else {
                     out.println("[TCP] " + nick + " " + input);
                 }
+            }
+
+            receiveMulticastThread.shutdown();
+            receiveUDPThread.shutdown();
+            receiveTCPThread.shutdown();
+
+            try {
+                receiveMulticastThread.join();
+                receiveUDPThread.join();
+                receiveTCPThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         } catch (IOException e) {
