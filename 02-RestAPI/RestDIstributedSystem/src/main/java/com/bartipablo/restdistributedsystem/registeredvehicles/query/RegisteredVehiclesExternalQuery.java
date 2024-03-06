@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-public class RegisteredVehiclesQuery implements Callable<RegisteredVehicles> {
+public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehicles> {
 
     Date date;
 

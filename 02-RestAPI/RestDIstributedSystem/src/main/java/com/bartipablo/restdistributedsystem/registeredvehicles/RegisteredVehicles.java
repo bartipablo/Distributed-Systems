@@ -8,17 +8,32 @@ import java.util.Map;
 @Getter
 public class RegisteredVehicles {
 
-    private int totalVehicles = 0;
+    private int totalVehicles;
 
-    private final Map<String, Integer> registeredVehiclesByBrand = new HashMap<>();
+    private final Map<String, Integer> registeredVehiclesByBrand;
 
-    private final Map<String, Integer> registeredVehiclesByCategory = new HashMap<>();
+    private final Map<String, Integer> registeredVehiclesByCategory;
 
-    private final Map<String, Integer> registeredVehiclesByFuelType = new HashMap<>();
+    private final Map<String, Integer> registeredVehiclesByFuelType;
 
-    private int totalWeight = 0;
+    private int totalWeight;
 
-    private int totalEngineCapacity = 0;
+    private int maxWeight;
+
+    private int totalEngineCapacity;
+
+    private int maxEngineCapacity;
+
+    public RegisteredVehicles() {
+        registeredVehiclesByBrand = new HashMap<>();
+        registeredVehiclesByCategory = new HashMap<>();
+        registeredVehiclesByFuelType = new HashMap<>();
+        totalVehicles = 0;
+        totalWeight = 0;
+        totalEngineCapacity = 0;
+        maxWeight = 0;
+        maxEngineCapacity = 0;
+    }
 
     public void addVehicle(String brand, String category, String fuel, int weight, int engineCapacity) {
         totalVehicles++;
@@ -27,6 +42,8 @@ public class RegisteredVehicles {
         registeredVehiclesByFuelType.put(fuel, registeredVehiclesByFuelType.getOrDefault(fuel, 0) + 1);
         totalWeight += weight;
         totalEngineCapacity += engineCapacity;
+        maxWeight = Math.max(maxWeight, weight);
+        maxEngineCapacity = Math.max(maxEngineCapacity, engineCapacity);
     }
 
 }
