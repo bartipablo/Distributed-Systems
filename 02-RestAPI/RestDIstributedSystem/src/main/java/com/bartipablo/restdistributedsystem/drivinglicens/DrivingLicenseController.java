@@ -1,6 +1,6 @@
 package com.bartipablo.restdistributedsystem.drivinglicens;
 
-import com.bartipablo.restdistributedsystem.utils.DateRange;
+import com.bartipablo.restdistributedsystem.utils.UserArguments;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class DrivingLicenseController {
 
     @GetMapping("/driving-license")
-    public DrivingLicenses getDrivingLicenseInfo(DateRange dateRange) {
+    public DrivingLicenses getDrivingLicenseInfo(UserArguments dateRange) {
         // TODO: implement business logic and exception handling
         return null;
     }

@@ -1,11 +1,13 @@
 package com.bartipablo.restdistributedsystem.registeredvehicles;
 
-import com.bartipablo.restdistributedsystem.utils.DateRange;
+import com.bartipablo.restdistributedsystem.utils.UserArguments;
 
 public class RegisteredVehiclesService {
 
-    public RegisteredVehicles getRegisteredVehicles(DateRange dateRange) {
+    public RegisteredVehicles getRegisteredVehicles(UserArguments dateRange) {
         return null;
     }
+
+
 
 }

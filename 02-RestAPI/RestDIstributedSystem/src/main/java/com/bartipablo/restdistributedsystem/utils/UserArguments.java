@@ -7,7 +7,19 @@ import java.util.*;
 
 
 @Getter
-public record DateRange(LocalDate from, LocalDate to) {
+public record UserArguments(
+        LocalDate from,
+        LocalDate to,
+        String voivodeship) {
+
+    public UserArguments {
+        if (to == null) {
+            to = LocalDate.now();
+        }
+
+
+    }
+
 
     public long differenceInDays() {
         return to.toEpochDay() - from.toEpochDay() + 1;
@@ -20,6 +32,5 @@ public record DateRange(LocalDate from, LocalDate to) {
         }
         return dates;
     }
-
 
 }
