@@ -46,4 +46,15 @@ public class RegisteredVehicles {
         maxEngineCapacity = Math.max(maxEngineCapacity, engineCapacity);
     }
 
+    public void addVehicle(RegisteredVehicles vehicle) {
+        totalVehicles += vehicle.totalVehicles;
+        vehicle.registeredVehiclesByBrand.forEach((brand, count) -> registeredVehiclesByBrand.put(brand, registeredVehiclesByBrand.getOrDefault(brand, 0) + count));
+        vehicle.registeredVehiclesByCategory.forEach((category, count) -> registeredVehiclesByCategory.put(category, registeredVehiclesByCategory.getOrDefault(category, 0) + count));
+        vehicle.registeredVehiclesByFuelType.forEach((fuel, count) -> registeredVehiclesByFuelType.put(fuel, registeredVehiclesByFuelType.getOrDefault(fuel, 0) + count));
+        totalWeight += vehicle.totalWeight;
+        totalEngineCapacity += vehicle.totalEngineCapacity;
+        maxWeight = Math.max(maxWeight, vehicle.maxWeight);
+        maxEngineCapacity = Math.max(maxEngineCapacity, vehicle.maxEngineCapacity);
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.bartipablo.restdistributedsystem.utils;
+package com.bartipablo.restdistributedsystem.registeredvehicles;
 
 import jakarta.validation.*;
 import jakarta.validation.constraints.Pattern;
@@ -60,12 +60,16 @@ public class UserArguments {
         return to.toEpochDay() - from.toEpochDay() + 1;
     }
 
-    public List<String> getDates() {
+    public List<LocalDate> getDates() {
 
-        List<String> dates = new ArrayList<>();
+        List<LocalDate> dates = new ArrayList<>();
         for (LocalDate date = from; date.isBefore(to.plusDays(1)); date = date.plusDays(1)) {
-            dates.add(date.toString());
+            dates.add(date);
         }
         return dates;
+    }
+
+    public String getVoivodeship() {
+        return voivodeship;
     }
 }
