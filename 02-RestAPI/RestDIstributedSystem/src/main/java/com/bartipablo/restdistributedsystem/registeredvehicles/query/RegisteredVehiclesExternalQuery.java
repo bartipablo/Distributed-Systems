@@ -1,30 +1,32 @@
 package com.bartipablo.restdistributedsystem.registeredvehicles.query;
 
-import com.bartipablo.restdistributedsystem.registeredvehicles.RegisteredVehicles;
+import com.bartipablo.restdistributedsystem.registeredvehicles.model.Vehicle;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.cglib.core.Local;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.concurrent.Callable;
 
-public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehicles> {
+public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehicleResponse> {
 
     private final int LIMIT = 500;
 
     private final String url;
 
+    private final RegisteredVehicleResponse response;
+
     public RegisteredVehiclesExternalQuery(LocalDate fromDate, LocalDate toDate, String voivodeshipCode) {
 
-        String fromMonth = fromDate.getMonthValue() < 10 ? "0" + fromDate.getMonthValue() : String.valueOf(fromDate.getMonthValue());
-        String fromDay = fromDate.getDayOfMonth() < 10 ? "0" + fromDate.getDayOfMonth() : String.valueOf(fromDate.getDayOfMonth());
+        response = new RegisteredVehicleResponse(fromDate, toDate);
 
-        String toMonth = toDate.getMonthValue() < 10 ? "0" + toDate.getMonthValue() : String.valueOf(toDate.getMonthValue());
-        String toDay = toDate.getDayOfMonth() < 10 ? "0" + toDate.getDayOfMonth() : String.valueOf(toDate.getDayOfMonth());
+        String fromMonth = concatSingletonWithZero(fromDate.getMonthValue());
+        String fromDay = concatSingletonWithZero(fromDate.getDayOfMonth());
+
+        String toMonth = concatSingletonWithZero(toDate.getMonthValue());
+        String toDay = concatSingletonWithZero(toDate.getDayOfMonth());
 
         this.url = "https://api.cepik.gov.pl/pojazdy?wojewodztwo=" +
                 voivodeshipCode +
@@ -42,13 +44,12 @@ public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehic
     }
 
     @Override
-    public RegisteredVehicles call() {
-
-        RegisteredVehicles registeredVehicles = new RegisteredVehicles();
+    public RegisteredVehicleResponse call() {
 
         RestTemplate restTemplate = new RestTemplate();
 
         try {
+            System.out.println("GET URL: " + url);
             String result = restTemplate.getForObject(url, String.class);
 
 
@@ -56,26 +57,34 @@ public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehic
             JSONArray data = resultJSON.getJSONArray("data");
 
             for (int i = 0; i < data.length(); i++) {
-                JSONObject vehicle = data.getJSONObject(i);
 
-                JSONObject vehicleDetails = vehicle.getJSONObject("attributes");
+                try {
+                    JSONObject vehicle = data.getJSONObject(i);
 
-                String brand = vehicleDetails.getString("marka");
-                String category = vehicleDetails.getString("rodzaj-pojazdu");
-                String fuel = vehicleDetails.getString("rodzaj-paliwa");
-                int weight = vehicleDetails.getInt("masa-wlasna");
-                int engineCapacity = vehicleDetails.getInt("pojemnosc-skokowa-silnika");
+                    JSONObject vehicleDetails = vehicle.getJSONObject("attributes");
 
-                registeredVehicles.addVehicle(brand, category, fuel, weight, engineCapacity);
+                    String brand = vehicleDetails.getString("marka");
+                    String category = vehicleDetails.getString("rodzaj-pojazdu");
+                    String fuel = vehicleDetails.getString("rodzaj-paliwa");
+                    int weight = vehicleDetails.getInt("masa-wlasna");
+                    int engineCapacity = vehicleDetails.getInt("pojemnosc-skokowa-silnika");
+
+                    Vehicle vehicleRecord = new Vehicle(brand, category, fuel, weight, engineCapacity);
+                    response.addVehicle(vehicleRecord);
+                } catch (JSONException e) {
+                    //ignore exception
+                }
             }
-        } catch (JSONException e) {
-            //ignore exception
-        } catch (RestClientException e) {
-            e.printStackTrace();
+        } catch (JSONException | RestClientException e) {
             throw e;
         }
 
-        return registeredVehicles;
+        return response;
+    }
+
+
+    private String concatSingletonWithZero(int value) {
+        return value < 10 ? "0" + value : String.valueOf(value);
     }
 
 }

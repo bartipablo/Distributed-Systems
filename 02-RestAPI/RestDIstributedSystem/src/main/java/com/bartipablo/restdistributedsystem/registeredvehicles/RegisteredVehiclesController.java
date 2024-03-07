@@ -22,16 +22,9 @@ public class RegisteredVehiclesController {
 
         try {
             UserArguments userArguments = new UserArguments(fromDate, toDate, voivodeship);
-            RegisteredVehicles registeredVehicles = registeredVehiclesService.getRegisteredVehicles(userArguments);
-            return new ResponseEntity<>(new RegisteredVehiclesDTO(
-                    registeredVehicles.getTotalVehicles(),
-                    registeredVehicles.getTotalWeight(),
-                    registeredVehicles.getMaxWeight(),
-                    registeredVehicles.getTotalEngineCapacity(),
-                    registeredVehicles.getMaxEngineCapacity(),
-                    registeredVehicles.getRegisteredVehiclesByBrand(),
-                    registeredVehicles.getRegisteredVehiclesByCategory()
-            ), HttpStatus.OK);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(registeredVehiclesService.getRegisteredVehicles(userArguments));
         } catch (RuntimeException e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
