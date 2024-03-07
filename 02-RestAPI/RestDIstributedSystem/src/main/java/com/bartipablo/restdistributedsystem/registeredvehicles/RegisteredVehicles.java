@@ -1,11 +1,12 @@
 package com.bartipablo.restdistributedsystem.registeredvehicles;
 
+import lombok.Data;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Getter
+
 public class RegisteredVehicles {
 
     private int totalVehicles;
@@ -57,4 +58,35 @@ public class RegisteredVehicles {
         maxEngineCapacity = Math.max(maxEngineCapacity, vehicle.maxEngineCapacity);
     }
 
+    public int getTotalVehicles() {
+        return totalVehicles;
+    }
+
+    public Map<String, Integer> getRegisteredVehiclesByBrand() {
+        return registeredVehiclesByBrand;
+    }
+
+    public Map<String, Integer> getRegisteredVehiclesByCategory() {
+        return registeredVehiclesByCategory;
+    }
+
+    public Map<String, Integer> getRegisteredVehiclesByFuelType() {
+        return registeredVehiclesByFuelType;
+    }
+
+    public int getTotalWeight() {
+        return totalWeight;
+    }
+
+    public int getMaxWeight() {
+        return maxWeight;
+    }
+
+    public int getTotalEngineCapacity() {
+        return totalEngineCapacity;
+    }
+
+    public int getMaxEngineCapacity() {
+        return maxEngineCapacity;
+    }
 }

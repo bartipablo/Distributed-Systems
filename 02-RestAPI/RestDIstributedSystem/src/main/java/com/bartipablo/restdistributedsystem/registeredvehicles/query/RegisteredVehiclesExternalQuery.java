@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 
 public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehicles> {
 
-    private final int LIMIT = 10;
+    private final int LIMIT = 500;
 
     private final String url;
 
@@ -36,7 +36,9 @@ public class RegisteredVehiclesExternalQuery implements Callable<RegisteredVehic
                 toDate.getYear() +
                 toMonth +
                 toDay +
-                "&typ-daty=1&tylko-zarejestrowane=true&pokaz-wszystkie-pola=false&limit=10&page=1";
+                "&typ-daty=1&tylko-zarejestrowane=true&pokaz-wszystkie-pola=false&limit=" +
+                LIMIT +
+                "&page=1";
     }
 
     @Override

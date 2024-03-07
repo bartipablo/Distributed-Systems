@@ -14,7 +14,7 @@ public class RegisteredVehiclesService {
 
     public RegisteredVehicles getRegisteredVehicles(UserArguments userArgument) throws ExecutionException, InterruptedException {
         int threadQuantity = (int) userArgument.differenceInDays();
-        ExecutorService es = Executors.newFixedThreadPool(threadQuantity);
+        ExecutorService es = Executors.newFixedThreadPool(Math.min(threadQuantity, 2));
         List<Future<RegisteredVehicles>> futures = new ArrayList<>();
 
         List<LocalDate> dates = userArgument.getDates();
