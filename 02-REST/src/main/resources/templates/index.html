@@ -1,23 +1,46 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="../static/css/style.css"
-      th:href="@{/css/style.css}"
-    />
-    <title>Hello, World!</title>
-  </head>
-  <body>
-    <script src="../static/js/script.js" th:src="@{/js/script.js}"></script>
-    <h1>Hello, World!</h1>
-    <p>To jest przykładowa strona HTML z wiadomością taką: "Hello, World!".</p>
-    <img
-      src="../static/image/image.png"
-      alt="Italian Trulli"
-      th:src="@{/image/image.png}"
-    />
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../static/css/style.css" th:href="@{/css/style.css}" />
+  <title>Weather API</title>
+</head>
+
+<body>
+  <div class="logo-container">
+    <img src="../static/image/image.png" alt="logo" th:src="@{/image/image.png}" class="logo-image" />
+    <h1>Weather API</h1>
+  </div>
+
+  <div class="color1">
+    <div class="form-container">
+      Comparing the weather forecast for the city with API "Meteo Source" and "Weather API"
+      <div class="button-form-container">
+        <input type="text" id="form1" name="fname" placeholder="Type city name" value="">
+        <input id="submit1" type="submit" value="Submit" onclick="currentWeatherDiffApi()">
+      </div>
+    </div>
+  </div>
+
+  <div class="color2">
+    <div class="form-container">
+      Comparing the weather forecast for two cities.       
+      <div class="button-form-container">
+        <input type="text" id="form2" name="fname" placeholder="Type city 1 name" value="">
+        <input type="text" id="form3" name="fname" placeholder="Type city 2 name" value="">
+        <input id="submit2" type="submit" value="Submit">
+      </div>
+    </div>
+  </div>
+
+  <div id="status" class="status-containter"></div>
+
+  <div id="content"></div>
+  <script src="../static/js/script.js" th:src="@{/js/script.js}"></script>
+
+
+</body>
+
 </html>
