@@ -5,7 +5,7 @@ import com.bartipablo.rest.dto.WeatherCurrCityDiffDTO;
 import com.bartipablo.rest.model.WeatherForecast;
 import com.bartipablo.rest.model.Location;
 import com.bartipablo.rest.query.ExternalQueryGenerator;
-import com.bartipablo.rest.query.QueryFeature;
+import com.bartipablo.rest.query.ExternalQueryFeature;
 import com.bartipablo.rest.utils.InvalidCityName;
 import com.bartipablo.rest.utils.Utils;
 import org.json.JSONArray;
@@ -29,17 +29,17 @@ public class WeatherService {
     public WeatherCurrApiDiffDTO getWeatherCurrApiDiff(String city) throws ExecutionException, InterruptedException {
 
         Future<String> cityLocationFuture = es.submit(
-                new QueryFeature(queryService.getCityLocationByMeteoSource(city))
+                new ExternalQueryFeature(queryService.getCityLocationByMeteoSource(city))
         );
 
         Location cityLocation = readLocationFromResponse(cityLocationFuture.get());
 
         Future<String> weatherByWeatherApiFuture = es.submit(
-                new QueryFeature(queryService.getWeatherByWeatherApi(cityLocation))
+                new ExternalQueryFeature(queryService.getWeatherByWeatherApi(cityLocation))
         );
 
         Future<String> weatherByMeteoSourceFuture = es.submit(
-                new QueryFeature(queryService.getWeatherByMeteoSource(cityLocation))
+                new ExternalQueryFeature(queryService.getWeatherByMeteoSource(cityLocation))
         );
 
 
@@ -146,6 +146,62 @@ public class WeatherService {
     }
 
 
+    public WeatherCurrCityDiffDTO getWeatherCurrCityDiff(String cityA, String cityB) throws ExecutionException, InterruptedException {
 
+        Future<String> cityALocationFuture = es.submit(
+                new ExternalQueryFeature(queryService.getCityLocationByMeteoSource(cityA))
+        );
 
+        Future<String> cityBLocationFuture = es.submit(
+                new ExternalQueryFeature(queryService.getCityLocationByMeteoSource(cityB))
+        );
+
+        Location cityLocationA = readLocationFromResponse(cityALocationFuture.get());
+        Location cityLocationB = readLocationFromResponse(cityBLocationFuture.get());
+
+        Future<String> cityAWeatherFuture = es.submit(
+                new ExternalQueryFeature(queryService.getWeatherByWeatherApi(cityLocationA))
+        );
+
+        Future<String> cityBWeatherFuture = es.submit(
+                new ExternalQueryFeature(queryService.getWeatherByMeteoSource(cityLocationB))
+        );
+
+        WeatherForecast cityWeatherA = readWeatherFromWeatherApiResponse(cityAWeatherFuture.get());
+        WeatherForecast cityWeatherB = readWeatherFromMeteSourceResponse(cityBWeatherFuture.get());
+
+        return analyseDataFromDiffCity(cityLocationA, cityLocationB, cityWeatherA, cityWeatherB);
+    }
+
+    private WeatherCurrCityDiffDTO analyseDataFromDiffCity(
+            Location locationA,
+            Location locationB,
+            WeatherForecast weatherForecastA,
+            WeatherForecast weatherForecastB) {
+
+        double avgTemperature = (weatherForecastA.temperature() + weatherForecastB.temperature()) / 2;
+        double absTemperatureDifference = Math.abs(weatherForecastA.temperature() - weatherForecastB.temperature());
+        double relTemperatureDifference = (absTemperatureDifference / avgTemperature) * 100;
+
+        double avgWindSpeed = (weatherForecastA.windSpeed() + weatherForecastB.windSpeed()) / 2;
+        double absWindSpeedDifference = Math.abs(weatherForecastA.windSpeed() - weatherForecastB.windSpeed());
+        double relWindSpeedDifference = (absWindSpeedDifference / avgWindSpeed) * 100;
+
+        double avgCloudCover = (1.0 * weatherForecastA.cloudCover() + weatherForecastB.cloudCover()) / 2;
+        double absCloudCoverDifference = Math.abs(weatherForecastA.cloudCover() - weatherForecastB.cloudCover());
+        double relCloudCoverDifference = (absCloudCoverDifference / avgCloudCover) * 100;
+
+        return new WeatherCurrCityDiffDTO(
+                locationA,
+                weatherForecastA,
+                locationB,
+                weatherForecastB,
+                Utils.round(absTemperatureDifference, 2),
+                Utils.round(relTemperatureDifference, 2),
+                Utils.round(absWindSpeedDifference, 2),
+                Utils.round(relWindSpeedDifference, 2),
+                Utils.round(absCloudCoverDifference, 2),
+                Utils.round(relCloudCoverDifference, 2)
+        );
+    }
 }

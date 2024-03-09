@@ -5,14 +5,31 @@ import com.bartipablo.rest.model.Location;
 
 public record WeatherCurrCityDiffDTO (
 
-        String sourceApi,
-
         Location locationA,
 
         WeatherForecast weatherForecastAtLocationA,
 
         Location locationB,
 
-        WeatherForecast weatherForecastAtLocationB
+        WeatherForecast weatherForecastAtLocationB,
+
+        //temperature analysis------------------
+        double absTemperatureDifference,
+
+        double relTemperatureDifference,
+        //temperature analysis------------------
+
+
+        //wind speed analysis-------------------
+        double absWindSpeedDifference,
+
+        double relWindSpeedDifference,
+        //wind speed analysis-------------------
+
+        //cloud cover analysis------------------
+        double absCloudCoverDifference,
+
+        double relCloudCoverDifference
+        //cloud cover analysis------------------
 ){
 }

@@ -41,7 +41,18 @@ public class WeatherController {
             @RequestParam(value = "city1", required = true, defaultValue = "") String city1,
             @RequestParam(value = "city2", required = true, defaultValue = "") String city2
     ) {
-        // TODO: implemenation
-        return null;
+        try {
+            var weatherCityDiff = weatherService.getWeatherCurrCityDiff(city1, city2);
+            return ResponseEntity.ok(weatherCityDiff);
+        } catch (InvalidCityName invalidCityName) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(invalidCityName.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
     }
 }

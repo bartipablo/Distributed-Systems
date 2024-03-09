@@ -2,11 +2,11 @@ package com.bartipablo.rest.query;
 
 import java.util.concurrent.Callable;
 
-public class QueryFeature implements Callable<String> {
+public class ExternalQueryFeature implements Callable<String> {
 
     ExternalQuery externalQuery;
 
-    public QueryFeature(ExternalQuery externalQuery) {
+    public ExternalQueryFeature(ExternalQuery externalQuery) {
         this.externalQuery = externalQuery;
     }
 
