@@ -43,7 +43,7 @@ public class ExternalQueryGenerator {
                         "?lat=" + location.latitude() +
                         "&lon=" + location.longitude() +
                         "&key=" + MeteoSourceKey +
-                        "&language=en&sections=current%2Chourly&language=en&units=auto"
+                        "&language=en&sections=current&language=en&units=metric"
 
         );
     }
@@ -51,8 +51,9 @@ public class ExternalQueryGenerator {
     public ExternalQuery getWeatherByWeatherApi(Location location) {
         return new ExternalQuery(
                 WeatherApiURL +
-                        "?key=" + WeatherApiKey +
-                        "&q=" + location.latitude() + "%2C" + location.longitude() +
+                        "?key=" + WeatherApiKey +    //substring, because weather api don't read direction.
+                        "&q=" + location.latitude().substring(0, location.latitude().length() - 1)
+                        + "," + location.longitude().substring(0, location.longitude().length() - 1) +
                         "&days=1"
         );
     }

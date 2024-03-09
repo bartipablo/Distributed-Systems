@@ -1,7 +1,5 @@
 package com.bartipablo.rest.query;
 
-import org.json.JSONObject;
-
 import java.util.concurrent.Callable;
 
 public class QueryFeature implements Callable<String> {
@@ -11,8 +9,9 @@ public class QueryFeature implements Callable<String> {
     public QueryFeature(ExternalQuery externalQuery) {
         this.externalQuery = externalQuery;
     }
+
     @Override
     public String call() {
-        return externalQuery.get();
+        return externalQuery.getResponse();
     }
 }
