@@ -12,13 +12,10 @@ public class ExternalQuery {
         this.URL = URL;
     }
 
-    public JSONObject get() throws Exception {
-
+    public String get() {
         RestTemplate restTemplate = new RestTemplate();
         System.out.println("GET URL: " + URL);
-        String result = restTemplate.getForObject(URL, String.class);
-
-        return new JSONObject(result);
+        return restTemplate.getForObject(URL, String.class);
     }
 
 }

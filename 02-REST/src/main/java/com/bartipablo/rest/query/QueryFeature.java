@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.Callable;
 
-public class QueryFeature implements Callable<JSONObject> {
+public class QueryFeature implements Callable<String> {
 
     ExternalQuery externalQuery;
 
@@ -12,7 +12,7 @@ public class QueryFeature implements Callable<JSONObject> {
         this.externalQuery = externalQuery;
     }
     @Override
-    public JSONObject call() throws Exception {
+    public String call() {
         return externalQuery.get();
     }
 }
