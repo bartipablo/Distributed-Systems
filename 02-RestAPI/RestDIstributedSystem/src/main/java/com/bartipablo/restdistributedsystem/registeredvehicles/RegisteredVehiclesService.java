@@ -17,7 +17,7 @@ public class RegisteredVehiclesService {
 
     public RegisteredVehiclesDTO getRegisteredVehicles(UserArguments userArgument)  {
         int threadQuantity = (int) userArgument.differenceInDays();
-        ExecutorService es = Executors.newFixedThreadPool(Math.min(threadQuantity, 4));
+        ExecutorService es = Executors.newFixedThreadPool(Math.min(threadQuantity, 3));
         List<Future<RegisteredVehicleResponse>> futures = new ArrayList<>();
 
         List<LocalDate> dates = userArgument.getDates();
