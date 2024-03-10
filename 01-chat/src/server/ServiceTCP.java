@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class ServiceTCP implements Runnable {
+public class ServiceTCP extends Thread {
+
+    private boolean exit = false;
 
     private final String userName;
 
@@ -14,6 +16,10 @@ public class ServiceTCP implements Runnable {
     private final ServerTCPHandler serverTCPHandler;
 
     private final ServerUDPHandler serverUDPHandler;
+
+    public void shutdown() {
+        exit = true;
+    }
 
     public ServiceTCP(String userName, Socket socket, ServerTCPHandler serverTCPHandler,
             ServerUDPHandler serverUDPHandler) {
@@ -28,7 +34,7 @@ public class ServiceTCP implements Runnable {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             String message;
-            while ((message = in.readLine()) != null) {
+            while (!exit && ((message = in.readLine()) != null)) {
 
                 String[] parts = message.split(" ", 3);
                 String messageType = parts[0];

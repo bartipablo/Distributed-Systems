@@ -21,6 +21,13 @@ public class ServerTCPHandler {
         printWriters.put(nick, writer);
     }
 
+    public void removeAllSockets() {
+        for (Map.Entry<String, Socket> entry : sockets.entrySet()) {
+            String nick = entry.getKey();
+            removeSocket(nick);
+        }
+    }
+
     public void removeSocket(String nick) {
         Socket socketToRemove = sockets.remove(nick);
         if (socketToRemove != null) {

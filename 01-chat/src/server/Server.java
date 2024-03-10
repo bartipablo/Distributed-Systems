@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Server {
 
@@ -15,20 +17,23 @@ public class Server {
 
         System.out.println("CHAT SERVER");
 
-        ServerSocket serverSocketTCP = null;
-        DatagramSocket serverSocketUDP = null;
-
         try {
             // create TCP server socket
-            serverSocketTCP = new ServerSocket(SERVER_PORT_NUMBER);
+            ServerSocket serverSocketTCP = new ServerSocket(SERVER_PORT_NUMBER);
             ServerTCPHandler serverTCPHandler = new ServerTCPHandler();
 
             // create UDP server socket
-            serverSocketUDP = new DatagramSocket(SERVER_PORT_NUMBER);
+            DatagramSocket serverSocketUDP = new DatagramSocket(SERVER_PORT_NUMBER);
             ServerUDPHandler serverUDPHandler = new ServerUDPHandler();
             
             Thread serviceUDP = new Thread(new ServiceUDP(serverSocketUDP, serverUDPHandler));
             serviceUDP.start();
+
+            //listening for new clients
+            List<ServiceTCP> clientThreads = new ArrayList<>();
+
+            // init shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(new ServerShutdownHook(serverTCPHandler, serverSocketTCP, serverSocketUDP, clientThreads)));
 
             while (true) {
                 // accept client
@@ -48,18 +53,14 @@ public class Server {
                 serverUDPHandler.addClientInfo(new ClientInfo(clientNick, clientAddress, Integer.parseInt(clientPort)));
                 serverTCPHandler.addSocket(clientNick, clientSocket);
                 
-                Thread clientTCPThread = new Thread(
-                        new ServiceTCP(clientNick, clientSocket, serverTCPHandler, serverUDPHandler));
+                ServiceTCP clientTCPThread = new ServiceTCP(clientNick, clientSocket, serverTCPHandler, serverUDPHandler);
+                clientThreads.add(clientTCPThread);
                 clientTCPThread.start();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (serverSocketTCP != null) {
-                serverSocketTCP.close();
-            }
-        }
+        } 
     }
 
 }

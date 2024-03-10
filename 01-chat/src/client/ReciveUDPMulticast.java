@@ -7,16 +7,17 @@ import java.net.SocketTimeoutException;
 
 public class ReciveUDPMulticast extends Thread {
 
+    private final String nick;
     private final MulticastSocket multicastSocket;
-
     private boolean exit = false;
 
     public void shutdown() {
         exit = true;
     }
 
-    public ReciveUDPMulticast(MulticastSocket multicastSocket) {
+    public ReciveUDPMulticast(MulticastSocket multicastSocket, String nick) {
         this.multicastSocket = multicastSocket;
+        this.nick = nick;
     }
 
     @Override
@@ -30,7 +31,10 @@ public class ReciveUDPMulticast extends Thread {
                 try {
                     multicastSocket.receive(receivePacket);
                     String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(), "UTF-8");
-                    System.out.println(receivedMessage);
+                    // Sprawdź czy wiadomość nie pochodzi od samego siebie
+                    if (!receivedMessage.startsWith(nick + ":")) {
+                        System.out.println(receivedMessage);
+                    }
                 } catch (SocketTimeoutException e) {
                     // ignore exception
                 }

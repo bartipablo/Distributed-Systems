@@ -22,7 +22,7 @@ public class Client {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             multicastSocket.joinGroup(group);
 
-            ReciveUDPMulticast receiveMulticastThread = new ReciveUDPMulticast(multicastSocket);
+            ReciveUDPMulticast receiveMulticastThread = new ReciveUDPMulticast(multicastSocket, nick);
             receiveMulticastThread.start();
 
             ReciveUDP receiveUDPThread = new ReciveUDP(socketUDP);

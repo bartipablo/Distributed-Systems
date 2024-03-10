@@ -26,5 +26,4 @@ java client.Client <nick>
 <message>     # sending a message using TCP
 /U <message>  # sending a message using UDP
 /M <message>  # sending a message using UDP multicast
-/quit         # connection closing
 ```
