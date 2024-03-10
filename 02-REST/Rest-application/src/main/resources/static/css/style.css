@@ -2,6 +2,8 @@
     font-family: Arial, sans-serif; 
 }
 
+
+
 h1 {
     color: #133;
     text-align: center;
@@ -52,6 +54,19 @@ h1 {
     text-align: center;
   }
 
+  .content-container {
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center; 
+    gap: 50px;
+}
+
+
+.content-line {
+    flex: 1;
+    margin: 0 5px;
+}
 
   input[type=text], select {
     width: 100%;

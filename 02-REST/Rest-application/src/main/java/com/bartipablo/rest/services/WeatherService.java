@@ -119,15 +119,15 @@ public class WeatherService {
 
         double avgTemperature = (weatherForecastA.temperature() + weatherForecastB.temperature()) / 2;
         double absTemperatureDifference = Math.abs(weatherForecastA.temperature() - weatherForecastB.temperature());
-        double relTemperatureDifference = (absTemperatureDifference / avgTemperature) * 100;
+        double relTemperatureDifference = avgTemperature != 0 ? (absTemperatureDifference / avgTemperature) * 100 : 0;
 
         double avgWindSpeed = (weatherForecastA.windSpeed() + weatherForecastB.windSpeed()) / 2;
         double absWindSpeedDifference = Math.abs(weatherForecastA.windSpeed() - weatherForecastB.windSpeed());
-        double relWindSpeedDifference = (absWindSpeedDifference / avgWindSpeed) * 100;
+        double relWindSpeedDifference = avgWindSpeed != 0 ? (absWindSpeedDifference / avgWindSpeed) * 100 : 0;
 
         double avgCloudCover = (1.0 * weatherForecastA.cloudCover() + weatherForecastB.cloudCover()) / 2;
         double absCloudCoverDifference = Math.abs(weatherForecastA.cloudCover() - weatherForecastB.cloudCover());
-        double relCloudCoverDifference = (absCloudCoverDifference / avgCloudCover) * 100;
+        double relCloudCoverDifference = avgCloudCover != 0 ? (absCloudCoverDifference / avgCloudCover) * 100 : 0;
 
         return new WeatherCurrApiDiffDTO(
                 location,
@@ -164,11 +164,11 @@ public class WeatherService {
         );
 
         Future<String> cityBWeatherFuture = es.submit(
-                new ExternalQueryFeature(queryService.getWeatherByMeteoSource(cityLocationB))
+                new ExternalQueryFeature(queryService.getWeatherByWeatherApi(cityLocationB))
         );
 
         WeatherForecast cityWeatherA = readWeatherFromWeatherApiResponse(cityAWeatherFuture.get());
-        WeatherForecast cityWeatherB = readWeatherFromMeteSourceResponse(cityBWeatherFuture.get());
+        WeatherForecast cityWeatherB = readWeatherFromWeatherApiResponse(cityBWeatherFuture.get());
 
         return analyseDataFromDiffCity(cityLocationA, cityLocationB, cityWeatherA, cityWeatherB);
     }
@@ -181,15 +181,15 @@ public class WeatherService {
 
         double avgTemperature = (weatherForecastA.temperature() + weatherForecastB.temperature()) / 2;
         double absTemperatureDifference = Math.abs(weatherForecastA.temperature() - weatherForecastB.temperature());
-        double relTemperatureDifference = (absTemperatureDifference / avgTemperature) * 100;
+        double relTemperatureDifference = avgTemperature != 0 ? (absTemperatureDifference / avgTemperature) * 100 : 0;
 
         double avgWindSpeed = (weatherForecastA.windSpeed() + weatherForecastB.windSpeed()) / 2;
         double absWindSpeedDifference = Math.abs(weatherForecastA.windSpeed() - weatherForecastB.windSpeed());
-        double relWindSpeedDifference = (absWindSpeedDifference / avgWindSpeed) * 100;
+        double relWindSpeedDifference = avgWindSpeed != 0 ? (absWindSpeedDifference / avgWindSpeed) * 100 : 0;
 
         double avgCloudCover = (1.0 * weatherForecastA.cloudCover() + weatherForecastB.cloudCover()) / 2;
         double absCloudCoverDifference = Math.abs(weatherForecastA.cloudCover() - weatherForecastB.cloudCover());
-        double relCloudCoverDifference = (absCloudCoverDifference / avgCloudCover) * 100;
+        double relCloudCoverDifference = avgCloudCover != 0 ? (absCloudCoverDifference / avgCloudCover) * 100 : 0;
 
         return new WeatherCurrCityDiffDTO(
                 locationA,
