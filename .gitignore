@@ -49,3 +49,7 @@ gradle-app.setting
 
 # keys do api
 *api.properties
+
+.DS_Store
+target/
+

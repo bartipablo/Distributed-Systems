@@ -14,10 +14,11 @@ public class Client {
     public static void main(String[] args) {
         readInputArguments(args);
 
-        try (
-                Socket socketTCP = new Socket(HOST_NAME, SERVER_PORT_NUMBER);
-                DatagramSocket socketUDP = new DatagramSocket();
-                MulticastSocket multicastSocket = new MulticastSocket(CLIENT_MULTICAST_PORT_NUMBER);) {
+        try {
+            Socket socketTCP = new Socket(HOST_NAME, SERVER_PORT_NUMBER);
+            DatagramSocket socketUDP = new DatagramSocket();
+            MulticastSocket multicastSocket = new MulticastSocket(CLIENT_MULTICAST_PORT_NUMBER);
+
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             multicastSocket.joinGroup(group);
 
@@ -35,12 +36,12 @@ public class Client {
 
             out.println(nick + " " + InetAddress.getLocalHost().getHostAddress() + " " + socketUDP.getLocalPort());
 
+            //init shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(new ClientShutdownHook(out, nick, socketTCP, socketUDP, multicastSocket, receiveMulticastThread, receiveUDPThread, receiveTCPThread)));
+
             String input;
             while ((input = userInput.readLine()) != null) {
-                if (input.startsWith("/quit")) {
-                    out.println("[Q] " + nick + " X");
-                    break;
-                } else if (input.startsWith("/U ")) {
+                if (input.startsWith("/U ")) {
                     String messageToSend = input.substring(3);
                     byte[] sendData = ("[UDP] " + nick + " " + messageToSend).getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
@@ -56,19 +57,6 @@ public class Client {
                     out.println("[TCP] " + nick + " " + input);
                 }
             }
-
-            receiveMulticastThread.shutdown();
-            receiveUDPThread.shutdown();
-            receiveTCPThread.shutdown();
-
-            try {
-                receiveMulticastThread.join();
-                receiveUDPThread.join();
-                receiveTCPThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -53,7 +53,7 @@ public class Server {
                 clientTCPThread.start();
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (serverSocketTCP != null) {
