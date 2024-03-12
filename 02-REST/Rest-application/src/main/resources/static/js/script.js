@@ -38,6 +38,14 @@ function elementFromHtml(html) {
 }
 
 
+function getApiKey() {
+    var apiKey = document.getElementById("apiKey").value;
+    if (apiKey == null) {
+        return "";
+    } 
+    return apiKey;
+}
+
 
 /*
     differences between weather forecasts for different APIs.
@@ -56,9 +64,11 @@ function currentWeatherDiffApi() {
         return;
     }
 
+    const apiKey = getApiKey();
+
     const controller = new AbortController();
     const signal = controller.signal;
-    const fetchPromise = fetch('http://localhost:8080/current-weather-diff-api/' + cityName, { signal });
+    const fetchPromise = fetch('http://localhost:8080/current-weather-diff-api/' + cityName + "?key=" + apiKey, { signal });
 
     const timeoutId = setTimeout(() => {
         controller.abort();
@@ -176,9 +186,11 @@ function currentWeatherDiffCity() {
         return;
     }
 
+    const apiKey = getApiKey();
+
     const controller = new AbortController();
     const signal = controller.signal;
-    const fetchPromise = fetch('http://localhost:8080/current-weather-diff-cities/?city1=' + cityName1 + "&city2=" + cityName2, { signal });
+    const fetchPromise = fetch('http://localhost:8080/current-weather-diff-cities/?city1=' + cityName1 + "&city2=" + cityName2 + "&key=" + apiKey, { signal });
 
     const timeoutId = setTimeout(() => {
         controller.abort();
