@@ -79,7 +79,7 @@ function currentWeatherDiffApi() {
     fetchPromise
         .then(response => {
             if (!response.ok) {
-                throw new Error(response.status);
+                return response.text().then(text => { throw new Error(response.status + " " + text) })
             }
             return response.json();
         })
@@ -201,7 +201,7 @@ function currentWeatherDiffCity() {
     fetchPromise
         .then(response => {
             if (!response.ok) {
-                throw new Error(response.status);
+                return response.text().then(text => { throw new Error(response.status + " " + text) })
             }
             return response.json();
         })

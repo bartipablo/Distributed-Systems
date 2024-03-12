@@ -99,7 +99,7 @@ public class WeatherService {
         JSONArray responseArray = new JSONArray(response);
 
         if (responseArray.isEmpty()) {
-            throw new InvalidCityName(response);
+            throw new InvalidCityName("Invalid city name");
         }
 
         JSONObject cityJSON = responseArray.getJSONObject(0);

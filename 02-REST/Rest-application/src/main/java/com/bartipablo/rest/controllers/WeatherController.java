@@ -32,12 +32,15 @@ public class WeatherController {
             validation.validate(key);
             var weatherApiDiff = weatherService.getWeatherCurrApiDiff(city);
             return ResponseEntity.ok(weatherApiDiff);
-        } catch (InvalidCityName | UnauthorizedRequest badRequest) {
+        } catch (InvalidCityName invalidCityName) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(badRequest.getMessage());
-        }
-        catch (Exception e) {
+                    .body(invalidCityName.getMessage());
+        } catch (UnauthorizedRequest unauthorizedRequest) {
+            return ResponseEntity.
+                    status(HttpStatus.UNAUTHORIZED)
+                    .body(unauthorizedRequest.getMessage());
+        } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
@@ -55,12 +58,15 @@ public class WeatherController {
             validation.validate(key);
             var weatherCityDiff = weatherService.getWeatherCurrCityDiff(city1, city2);
             return ResponseEntity.ok(weatherCityDiff);
-        } catch (InvalidCityName | UnauthorizedRequest badRequest) {
+        } catch (InvalidCityName invalidCityName) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(badRequest.getMessage());
-        }
-        catch (Exception e) {
+                    .body(invalidCityName.getMessage());
+        } catch (UnauthorizedRequest unauthorizedRequest) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(unauthorizedRequest.getMessage());
+        } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
