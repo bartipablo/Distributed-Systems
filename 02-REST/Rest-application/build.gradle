@@ -25,6 +25,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'org.codehaus.jackson:jackson-core-asl:1.9.13'
     implementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    implementation 'com.bucket4j:bucket4j-core:8.7.0'
 
 }
 

@@ -1,9 +1,11 @@
 package com.bartipablo.rest.controllers;
 
 
+import com.bartipablo.rest.query.RateLimit;
 import com.bartipablo.rest.query.Validation;
 import com.bartipablo.rest.services.WeatherService;
 import com.bartipablo.rest.utils.InvalidCityName;
+import com.bartipablo.rest.utils.QueryLimitExceeded;
 import com.bartipablo.rest.utils.UnauthorizedRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +25,17 @@ public class WeatherController {
     @Autowired
     Validation validation;
 
+    @Autowired
+    RateLimit rateLimit;
+
+
     @GetMapping("/current-weather-diff-api/{city}")
     public ResponseEntity<?> currentWeather(
             @PathVariable String city,
             @RequestParam(value = "key", required = true, defaultValue = "") String key
     ) {
         try {
+            rateLimit.checkLimit();
             validation.validate(key);
             var weatherApiDiff = weatherService.getWeatherCurrApiDiff(city);
             return ResponseEntity.ok(weatherApiDiff);
@@ -40,6 +47,10 @@ public class WeatherController {
             return ResponseEntity.
                     status(HttpStatus.UNAUTHORIZED)
                     .body(unauthorizedRequest.getMessage());
+        } catch (QueryLimitExceeded queryLimitExceeded) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(queryLimitExceeded.getMessage());
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -55,6 +66,7 @@ public class WeatherController {
             @RequestParam(value = "city2", required = true, defaultValue = "") String city2
     ) {
         try {
+            rateLimit.checkLimit();
             validation.validate(key);
             var weatherCityDiff = weatherService.getWeatherCurrCityDiff(city1, city2);
             return ResponseEntity.ok(weatherCityDiff);
@@ -66,10 +78,30 @@ public class WeatherController {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(unauthorizedRequest.getMessage());
-        } catch (Exception e) {
+        } catch (QueryLimitExceeded queryLimitExceeded) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(queryLimitExceeded.getMessage());
+        }
+        catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
         }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        try {
+            rateLimit.checkLimit();
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body("test");
+        } catch (QueryLimitExceeded queryLimitExceeded) {
+            return ResponseEntity
+                    .status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(queryLimitExceeded.getMessage());
+        }
+
     }
 }
