@@ -1,11 +1,12 @@
-package client;
+package com.bartipablo;
+
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 
-public class ReciveUDPMulticast extends Thread {
+public class ReceiveUDPMulticast extends Thread {
 
     private final String nick;
     private final MulticastSocket multicastSocket;
@@ -15,7 +16,7 @@ public class ReciveUDPMulticast extends Thread {
         exit = true;
     }
 
-    public ReciveUDPMulticast(MulticastSocket multicastSocket, String nick) {
+    public ReceiveUDPMulticast(MulticastSocket multicastSocket, String nick) {
         this.multicastSocket = multicastSocket;
         this.nick = nick;
     }
@@ -31,7 +32,6 @@ public class ReciveUDPMulticast extends Thread {
                 try {
                     multicastSocket.receive(receivePacket);
                     String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength(), "UTF-8");
-                    // Sprawdź czy wiadomość nie pochodzi od samego siebie
                     if (!receivedMessage.startsWith(nick + ":")) {
                         System.out.println(receivedMessage);
                     }
@@ -40,7 +40,11 @@ public class ReciveUDPMulticast extends Thread {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (!exit) {
+                System.out.println("Error while receiving UDP multicast message");
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 }

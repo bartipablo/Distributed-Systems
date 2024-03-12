@@ -1,11 +1,11 @@
-package client;
+package com.bartipablo;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
 
-public class ReciveUDP extends Thread {
+public class ReceiveUDP extends Thread {
 
     private final DatagramSocket socketUDP;
 
@@ -15,7 +15,7 @@ public class ReciveUDP extends Thread {
         exit = true;
     }
 
-    public ReciveUDP(DatagramSocket socketUDP) {
+    public ReceiveUDP(DatagramSocket socketUDP) {
         this.socketUDP = socketUDP;
     }
 
@@ -36,7 +36,11 @@ public class ReciveUDP extends Thread {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (!exit) {
+                System.out.println("Error while receiving UDP message");
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 }
