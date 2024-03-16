@@ -54,7 +54,7 @@ public class WeatherController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Internal server error");
         }
     }
 
@@ -86,7 +86,7 @@ public class WeatherController {
         catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Internal server error");
         }
     }
 

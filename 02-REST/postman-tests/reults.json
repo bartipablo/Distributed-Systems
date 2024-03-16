@@ -1,0 +1,334 @@
+{
+	"id": "18e9583a-164c-4104-a50c-576b5d4aed60",
+	"name": "REST - Distributed Systems Lab",
+	"timestamp": "2024-03-16T17:11:52.691Z",
+	"collection_id": "31317297-d56bf1bd-c08b-4db2-9af6-8587e0eae412",
+	"folder_id": 0,
+	"environment_id": "31317297-71d6c981-cc17-43a7-b86c-48dc24dbe175",
+	"totalPass": 27,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2024-03-16T17:11:48.398Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "b1e48f45-ea91-4e8d-9e01-1d1c1e6d703b",
+			"name": "Invalid key",
+			"url": "http://localhost:8080/current-weather-diff-api/london?key=wrong-key",
+			"time": 12,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status code is 401": true
+			},
+			"testPassFailCounts": {
+				"Status code is 401": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				12
+			],
+			"allTests": [
+				{
+					"Status code is 401": true
+				}
+			]
+		},
+		{
+			"id": "e0660b74-91ac-4a5a-9b51-5363516d7c14",
+			"name": "Invalid city name",
+			"url": "http://localhost:8080/current-weather-diff-api/lx2p13sa2z?key=agh",
+			"time": 149,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				149
+			],
+			"allTests": [
+				{
+					"Status code is 400": true
+				}
+			]
+		},
+		{
+			"id": "8f8a2b75-e1e7-4e2b-b90a-1b5ee6328311",
+			"name": "Valid Query",
+			"url": "http://localhost:8080/current-weather-diff-api/london?key=agh",
+			"time": 1258,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Body include location": true,
+				"Body include weatherForecastByApiA": true,
+				"Body include avgTemperature": true,
+				"Body include absTemperatureDifference": true,
+				"Body include relTemperatureDifference": true,
+				"Body include avgWindSpeed": true,
+				"Body include absWindSpeedDifference": true,
+				"Body include relWindSpeedDifference": true,
+				"Body include avgCloudCover": true,
+				"Body include absCloudCoverDifference": true,
+				"Body include relCloudCoverDifference": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include location": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include weatherForecastByApiA": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include avgTemperature": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absTemperatureDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relTemperatureDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include avgWindSpeed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absWindSpeedDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relWindSpeedDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include avgCloudCover": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absCloudCoverDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relCloudCoverDifference": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1258
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Body include location": true,
+					"Body include weatherForecastByApiA": true,
+					"Body include avgTemperature": true,
+					"Body include absTemperatureDifference": true,
+					"Body include relTemperatureDifference": true,
+					"Body include avgWindSpeed": true,
+					"Body include absWindSpeedDifference": true,
+					"Body include relWindSpeedDifference": true,
+					"Body include avgCloudCover": true,
+					"Body include absCloudCoverDifference": true,
+					"Body include relCloudCoverDifference": true
+				}
+			]
+		},
+		{
+			"id": "aad99725-92f4-4e4e-a2c6-480775ce0cc2",
+			"name": "Invalid Key",
+			"url": "http://localhost:8080/current-weather-diff-cities/?key=wrong-key&city1=london&city2=warsaw",
+			"time": 4,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status code is 401": true
+			},
+			"testPassFailCounts": {
+				"Status code is 401": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"Status code is 401": true
+				}
+			]
+		},
+		{
+			"id": "0f7e7a57-89be-4975-b32e-486072443581",
+			"name": "Invalid city name",
+			"url": "http://localhost:8080/current-weather-diff-cities/?key=agh&city1=london&city2=sx1a2112x12a",
+			"time": 1191,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1191
+			],
+			"allTests": [
+				{
+					"Status code is 400": true
+				}
+			]
+		},
+		{
+			"id": "89b515ff-c2df-4694-ba0f-b92113c2eb00",
+			"name": "Valid Query",
+			"url": "http://localhost:8080/current-weather-diff-cities/?key=agh&city1=london&city2=warsaw",
+			"time": 1352,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Body include locationA": true,
+				"Body include weatherForecastAtLocationA": true,
+				"Body include locationB": true,
+				"Body include weatherForecastAtLocationB": true,
+				"Body include absTemperatureDifference": true,
+				"Body include relTemperatureDifference": true,
+				"Body include absWindSpeedDifference": true,
+				"Body include relWindSpeedDifference": true,
+				"Body include absCloudCoverDifference": true,
+				"Body include relCloudCoverDifference": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include locationA": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include weatherForecastAtLocationA": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include locationB": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include weatherForecastAtLocationB": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absTemperatureDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relTemperatureDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absWindSpeedDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relWindSpeedDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include absCloudCoverDifference": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Body include relCloudCoverDifference": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1352
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Body include locationA": true,
+					"Body include weatherForecastAtLocationA": true,
+					"Body include locationB": true,
+					"Body include weatherForecastAtLocationB": true,
+					"Body include absTemperatureDifference": true,
+					"Body include relTemperatureDifference": true,
+					"Body include absWindSpeedDifference": true,
+					"Body include relWindSpeedDifference": true,
+					"Body include absCloudCoverDifference": true,
+					"Body include relCloudCoverDifference": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 3966,
+	"collection": {
+		"requests": [
+			{
+				"id": "b1e48f45-ea91-4e8d-9e01-1d1c1e6d703b",
+				"method": "GET"
+			},
+			{
+				"id": "e0660b74-91ac-4a5a-9b51-5363516d7c14",
+				"method": "GET"
+			},
+			{
+				"id": "8f8a2b75-e1e7-4e2b-b90a-1b5ee6328311",
+				"method": "GET"
+			},
+			{
+				"id": "aad99725-92f4-4e4e-a2c6-480775ce0cc2",
+				"method": "GET"
+			},
+			{
+				"id": "0f7e7a57-89be-4975-b32e-486072443581",
+				"method": "GET"
+			},
+			{
+				"id": "89b515ff-c2df-4694-ba0f-b92113c2eb00",
+				"method": "GET"
+			}
+		]
+	}
+}
