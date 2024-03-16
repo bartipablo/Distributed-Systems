@@ -8,7 +8,7 @@ An api for comparing weather statistics using an external API:
 
 [weatherapi](https://www.weatherapi.com/)
 
-![weather REST API preview](pic.png)
+![weather REST API preview](screen.png)
 
 ## SETUP
 ```
