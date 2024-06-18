@@ -1,9 +1,10 @@
 import sys
 import os
 import Ice
+import asyncio
+
 sys.path.insert(0, os.path.abspath('../../../../generated'))
 import Smarthome
-import asyncio
 
 
 class InvalidCommand(Exception):
@@ -48,10 +49,10 @@ def get_proxy_string(ip, port, category, name):
 
 async def get_prx(ip, port, communicator, category, name, prx):
     base = communicator.stringToProxy(get_proxy_string(ip, port, name, category))
-    Nprx = prx.checkedCast(base)
-    if not Nprx:
+    nprx = prx.checkedCast(base)
+    if not nprx:
         raise ValueError("Invalid proxy")
-    return Nprx
+    return nprx
 
 
 async def get_devices(ip, port, communicator):
@@ -207,37 +208,6 @@ def loop(devices):
             print("Invalid command.")
         except Exception as e:
             print(f"Exception occurred: {str(e)}")
-
-
-def help():
-    print("available devices: ")
-    print("  devid=Fridge1 (fridge)")
-    print("  devid=Fridge2 (fridge with ice maker)")
-    print("  devid=Fridge3 (fridge with products monitoring)")
-    print("  devid=Mower (mower)")
-    print()
-    print("available commands: ")
-    print("  for each devices: ")
-    print("    <devid> getId")
-    print("    <devid> getMode")
-    print("    <devid> setMode <on | off>")
-    print("  for each fridges: ")
-    print("    <devid> setTemperature <float>")
-    print("    <devid> getTemperature")
-    print("    <devid> getTemperatureRange")
-    print("  for fridges with ice maker: ")
-    print("    <devid> makeIce <int>")
-    print("  for fridges with product monitoring: ")
-    print("    <devid> getProducts")
-    print("    <devid> getProduct <int>")
-    print("    <devid> getExpiredProducts")
-    print("    <devid> removeProduct <int>")
-    print("    <devid> addProduct <int> <string> <int> <string> <int> <int> <int>")
-    print("  for each mower: ")
-    print("    <devid> getPosition")
-    print("    <devid> setSpeed <int>")
-    print("    <devid> getBatteryLevel")
-    print("    <devid> getSpeed")
 
 
 def main():
