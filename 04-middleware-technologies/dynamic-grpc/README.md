@@ -6,7 +6,7 @@ The goal of the task is to demonstrate the operation of a dynamic call on the cl
 
 ### Technologies
 - gRPC
-- grpcurl
+- gRPCurl
 - Java (server)
 - Python (client)
 
@@ -15,8 +15,8 @@ The goal of the task is to demonstrate the operation of a dynamic call on the cl
 To run this project, ensure you have the following software installed:
 - [grpcurl](https://github.com/fullstorydev/grpcurl)
 ```
-# Example installation command for Ubuntu systems
-sudo apt install grpcurl
+# Example installation command for Ubuntu MacOS
+brew install grpcurl
 ```
 
 ### How to run server
