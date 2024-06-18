@@ -43,6 +43,11 @@ public class CalculatorGrpcImp extends CalculatorGrpc.CalculatorImplBase {
 
     @Override
     public void div(DivRequest request, StreamObserver<DivResponse> responseObserver) {
+        if (request.getDivisor() == 0) {
+            responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription("Division by zero").asRuntimeException());
+            return;
+        }
+
         int val = request.getDividend() / request.getDivisor();
         DivResponse response = com.calculator.grpc.DivResponse.newBuilder().setQuotient(val).build();
         responseObserver.onNext(response);
