@@ -44,7 +44,6 @@ public class DynamicGRPCServer {
         }
     }
 
-
     public static void main(String[] args) throws IOException, InterruptedException {
         final DynamicGRPCServer server = new DynamicGRPCServer();
         server.start();
