@@ -26,22 +26,26 @@ Has the ability to send a message (info) to everyone
 
 ## How to compile?
 ```
+cd ./code
 mvn compile
 ```
 
 ## How to run Administrator?
 ```
+cd ./code
 mvn exec:java -Dexec.mainClass="org.example.Administrator"
 ```
 
 ## How to run Doctor?
 ```
+cd ./code
 mvn exec:java -Dexec.mainClass="org.example.Doctor"
 ```
 
 
 ## How to run Technician?
 ```
+cd ./code
 mvn exec:java -Dexec.mainClass="org.example.Technician"  -Dexec.args="[Hip|Knee|Elbow] [Hip|Knee|Elbow]"
 ```
 
