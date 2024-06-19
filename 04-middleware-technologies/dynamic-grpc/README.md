@@ -15,7 +15,7 @@ The goal of the task is to demonstrate the operation of a dynamic call on the cl
 To run this project, ensure you have the following software installed:
 - [grpcurl](https://github.com/fullstorydev/grpcurl)
 ```
-# Example installation command for Ubuntu MacOS
+# Example installation command for MacOS
 brew install grpcurl
 ```
 
