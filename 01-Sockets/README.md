@@ -2,7 +2,7 @@
 
 ## Description
 
-A simple chat application for group communication using TCP and UDP.
+A simple chat application for group communication using Berkeley sockets (TCP and UDP).
 
 [YouTube preview](https://www.youtube.com/watch?v=p2HPqFztxfw)
 
