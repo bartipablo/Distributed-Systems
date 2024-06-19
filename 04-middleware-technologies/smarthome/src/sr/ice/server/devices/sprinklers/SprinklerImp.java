@@ -6,18 +6,18 @@ import sr.ice.server.devices.DeviceImp;
 
 public class SprinklerImp extends DeviceImp implements Sprinkler {
 
-    private final RadiousRange radiousRange;
+    private final RadiusRange radiousRange;
 
     private int radius = 0;
 
     public SprinklerImp(String id) {
         super(id);
-        radiousRange = new RadiousRange(0, 10);
+        radiousRange = new RadiusRange(0, 10);
     }
 
-    public SprinklerImp(String id, RadiousRange radiousRange) {
+    public SprinklerImp(String id, RadiusRange radiusRange) {
         super(id);
-        this.radiousRange = radiousRange;
+        this.radiousRange = radiusRange;
     }
 
     @Override
