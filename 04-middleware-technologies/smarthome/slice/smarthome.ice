@@ -18,13 +18,15 @@ module Smarthome
 
   exception InvalidDate {};
 
+  exception InputRadiusOutOfRange {};
+
 
   interface Device {
-    string getId();
+    idempotent string getId();
 
-    void setMode(Mode mode);
+    idempotent void setMode(Mode mode);
 
-    Mode getMode();
+    idempotent Mode getMode();
   };
 
 /********************************************************
@@ -72,17 +74,15 @@ module Smarthome
 
     idempotent ProductList getExpiredProducts() throws DevicesIsInStandbyMode;
 
-    idempotent void addProduct(Product product) throws DevicesIsInStandbyMode, InvalidDate;
+    void addProduct(Product product) throws DevicesIsInStandbyMode, InvalidDate;
 
-    idempotent void addProducts(ProductList products) throws DevicesIsInStandbyMode, InvalidDate;
+    void addProducts(ProductList products) throws DevicesIsInStandbyMode, InvalidDate;
 
-    idempotent void removeProduct(int productId) throws DevicesIsInStandbyMode, ProductDoesNotExist;
+    void removeProduct(int productId) throws DevicesIsInStandbyMode, ProductDoesNotExist;
   };
 
    interface FridgeWithIceMaker extends Fridge {
-
-    idempotent void makeIce(int weigth) throws DevicesIsInStandbyMode;
-
+    void makeIce(int weigth) throws DevicesIsInStandbyMode;
    };
 
 /**
@@ -111,10 +111,27 @@ module Smarthome
 
         idempotent double getBatteryLevel() throws DevicesIsInStandbyMode;
     };
-
-};
 /**
 * MOWER
 ********************************************************/
+
+/********************************************************
+* SPRINKLER
+*/
+    struct RadiusRange {
+        int min;
+        int max;
+    };
+
+    interface Sprinkler extends Device {
+        idempotent void setRadius(int radius) throws DevicesIsInStandbyMode, InputRadiusOutOfRange;
+
+        idempotent int getRadius() throws DevicesIsInStandbyMode;
+    };
+/**
+* SPRINKLER
+********************************************************/
+};
+
 
 #endif

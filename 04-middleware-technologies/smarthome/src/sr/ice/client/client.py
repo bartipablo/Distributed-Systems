@@ -2,8 +2,10 @@ import sys
 import os
 import Ice
 import asyncio
+from utils import help_message
 
 sys.path.insert(0, os.path.abspath('../../../../generated'))
+sys.path.insert(0, os.path.abspath('./generated'))
 import Smarthome
 
 
@@ -11,75 +13,58 @@ class InvalidCommand(Exception):
     pass
 
 
-help_message = """
-    available devices:
-      devid=Fridge1 (fridge)
-      devid=Fridge2 (fridge with ice maker)
-      devid=Fridge3 (fridge with products monitoring)
-      devid=Mower (mower)
+class Device():
+    def __init__(self, name, category, desc, ip, port, prx):
+        self.name = name
+        self.category = category
+        self.desc = desc
+        self.prx = prx
+        self.ip = ip
+        self.port = port
+        self.nprx = None
+
+    def get_name(self):
+        return self.name
     
-    available commands:
-      for each devices:
-        <devid> getId
-        <devid> getMode
-        <devid> setMode <on | off>
-      for each fridges:
-        <devid> setTemperature <float>
-        <devid> getTemperature
-        <devid> getTemperatureRange
-      for fridges with ice maker:
-        <devid> makeIce <int>
-      for fridges with product monitoring:
-        <devid> getProducts
-        <devid> getProduct <int>
-        <devid> getExpiredProducts
-        <devid> removeProduct <int>
-        <devid> addProduct <int> <string> <int> <string> <int> <int> <int>
-      for each mower:
-        <devid> getPosition
-        <devid> setSpeed <int>
-        <devid> getBatteryLevel
-        <devid> getSpeed
-"""
+    def get_category(self):
+        return self.category
+    
+    def get_desc(self):
+        return self.desc
+    
+    def get_prx(self):
+        return self.prx
+    
+    def get_ip(self):
+        return self.ip
+    
+    def get_port(self):
+        return self.port
+    
+    def set_nprx(self, nprx):
+        self.nprx = nprx
+
+    def get_nprx(self):
+        return self.nprx
 
 
-def get_proxy_string(ip, port, category, name):
-    return f"{category}/{name}:tcp -h {ip} -p {port} :udp -h {ip} -p {port}"
-
-
-async def get_prx(ip, port, communicator, category, name, prx):
-    base = communicator.stringToProxy(get_proxy_string(ip, port, name, category))
-    nprx = prx.checkedCast(base)
-    if not nprx:
-        raise ValueError("Invalid proxy")
-    return nprx
-
-
-async def get_devices(ip, port, communicator):
-    return {
-        "Fridge1": await get_prx(ip, port, communicator, "Fridge1", "fridge", Smarthome.FridgePrx),
-        "Fridge2": await get_prx(ip, port, communicator, "FridgeWithIceMaker1", "fridge",
-                                 Smarthome.FridgeWithIceMakerPrx),
-        "Fridge3": await get_prx(ip, port, communicator, "FridgeWithProductsMonitoring1", "fridge",
-                                 Smarthome.FridgeWithProductsMonitoringPrx),
-        "Mower": await get_prx(ip, port, communicator, "Mower1", "mower", Smarthome.MowerPrx)
-    }
-
-
-def loop(devices):
+def loop(devices, communicator):
     while True:
         try:
             command = input(">>> ")
+            
             if command == "exit":
                 return
-
             elif command == "help":
                 print(help_message)
-
+            elif command == "list":
+                list_devices(devices)
+            elif command == "reconnect":
+                asyncio.run(connect_devices(devices, communicator))
+        
             else:
                 command = command.split(" ")
-                device_str = command[0]
-                device = devices.get(device_str)
+                device = get_device_by_name(devices, command[0])
 
                 if device is None:
                     raise InvalidCommand()
@@ -88,17 +73,17 @@ def loop(devices):
 
                 # for device interface ------------------------
                 if func_str == "getId":
-                    print(device.getId())
+                    print(device.get_nprx().getId())
 
                 elif func_str == "getMode":
-                    print(device.getMode())
+                    print(device.get_nprx().getMode())
 
                 elif func_str == "setMode":
                     mode = command[2].lower()
                     if mode == "on":
-                        device.setMode(Smarthome.Mode.ON)
+                        device.get_nprx().setMode(Smarthome.Mode.ON)
                     elif mode == "off":
-                        device.setMode(Smarthome.Mode.STANDBY)
+                        device.get_nprx().setMode(Smarthome.Mode.STANDBY)
                     else:
                         raise InvalidCommand()
                 # for device interface ------------------------
@@ -106,13 +91,13 @@ def loop(devices):
                 # for fridge interface ------------------------
                 elif func_str == "setTemperature":
                     temperature = float(command[2])
-                    device.setTemperature(temperature)
+                    device.get_nprx().setTemperature(temperature)
 
                 elif func_str == "getTemperature":
-                    print(device.getTemperature())
+                    print(device.get_nprx().getTemperature())
 
                 elif func_str == "getTemperatureRange":
-                    device_temp_range = device.getTemperatureRange()
+                    device_temp_range = device.get_nprx().getTemperatureRange()
                     print("min: " + str(device_temp_range.min))
                     print("max: " + str(device_temp_range.max))
                 # for fridge interface ------------------------
@@ -120,28 +105,28 @@ def loop(devices):
                 # for fridge with ice maker interface ------------------------
                 elif func_str == "makeIce":
                     quantity = int(command[2])
-                    device.makeIce(quantity)
+                    device.get_nprx().makeIce(quantity)
                     print("finish.")
                 # for fridge with ice maker interface ------------------------
 
                 # for fridge with products monitor interface ------------------------
                 elif func_str == "getProducts":
-                    products = device.getProducts()
+                    products = device.get_nprx().getProducts()
                     for product in products:
                         print(product)
 
                 elif func_str == "getProduct":
                     product_id = int(command[2])
-                    print(device.getProduct(product_id))
+                    print(device.get_nprx().getProduct(product_id))
 
                 elif func_str == "getExpiredProducts":
-                    products = device.getExpiredProducts()
+                    products = device.get_nprx().getExpiredProducts()
                     for product in products:
                         print(product)
 
                 elif func_str == "removeProduct":
                     product_to_remove_id = int(command[2])
-                    device.removeProduct(product_to_remove_id)
+                    device.get_nprx().removeProduct(product_to_remove_id)
 
                 elif func_str == "addProduct":
                     product_id = int(command[2])
@@ -169,24 +154,30 @@ def loop(devices):
                         unit=product_unit,
                         expirationDate=expiration_date
                     )
-                    device.addProduct(product)
+                    device.get_nprx().addProduct(product)
                 # for fridge with products monitor interface ------------------------
 
                 # for mower interface------------------------------------------------
                 elif func_str == "getPosition":
-                    position = device.getPosition()
+                    position = device.get_nprx().getPosition()
                     print("x: " + str(position.x))
                     print("y: " + str(position.y))
 
                 elif func_str == "setSpeed":
                     speed = int(command[2])
-                    device.setSpeed(speed)
+                    device.get_nprx().setSpeed(speed)
 
                 elif func_str == "getBatteryLevel":
-                    print(device.getBatteryLevel())
+                    print(device.get_nprx().getBatteryLevel())
 
                 elif func_str == "getSpeed":
-                    print(device.getSpeed())
+                    print(device.get_nprx().getSpeed())
+                # for sprinkler interface------------------------------------------------
+                elif func_str == "getRadius":
+                    print(device.get_nprx().getRadius())
+                elif func_str == "setRadius":
+                    radius = int(command[2])
+                    device.get_nprx().setRadius(radius)
 
                 else:
                     raise InvalidCommand()
@@ -206,27 +197,73 @@ def loop(devices):
             print("Invalid date.")
         except (IndexError, AttributeError, InvalidCommand, ValueError):
             print("Invalid command.")
+        except Ice.ConnectionRefusedException as e:
+            print("Connection refused.")
         except Exception as e:
             print(f"Exception occurred: {str(e)}")
 
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python3 main.py <server_ip> <server_port> <ice_args>")
-        return 1
+def list_devices(devices):
+    print("\ndevices:")
+    for device in devices:
+        print(f"{device.get_name()} - {device.get_desc()}")
+        
 
-    server_ip = sys.argv[1]
-    server_port = sys.argv[2]
-    ice_args = sys.argv[3:]
+def get_device_by_name(devices, name):
+    for device in devices:
+        if device.get_name() == name:
+            return device
+    return None
+
+
+def get_proxy_string(ip, port, category, name):
+    return f"{category}/{name}:tcp -h {ip} -p {port} :udp -h {ip} -p {port}"
+
+
+async def connect_device(device, communicator):
+    base = communicator.stringToProxy(get_proxy_string(
+        device.get_ip(),
+        device.get_port(), 
+        device.get_category(), 
+        device.get_name()))
+    
+    prx = device.get_prx()
+    device.set_nprx(prx.checkedCast(base))
+
+    if not device.get_nprx():
+        raise ValueError("Invalid proxy")
+
+
+async def connect_devices(devices, communicator):
+    for device in devices:
+        try:
+            await connect_device(device, communicator)
+        except Exception as e:
+            print(f"Error during connect with device {device.get_name()}:\n{str(e)}\n")
+
+
+def main():
+    server_ip = "127.0.0.1"
+    kitchen_server_port = 40041
+    yard_server_port = 40042
+
+    devices = [
+        Device("Mower1", "yard-devices", "mower", server_ip, yard_server_port, Smarthome.MowerPrx),
+        Device("Sprinkler1", "yard-devices", "sprinkler", server_ip, yard_server_port, Smarthome.SprinklerPrx),
+        Device("Sprinkler2", "yard-devices", "sprinkler", server_ip, yard_server_port, Smarthome.SprinklerPrx),
+        Device("Fridge1", "kitchen-devices", "fridge", server_ip, kitchen_server_port, Smarthome.FridgePrx),
+        Device("Fridge2", "kitchen-devices", "fridge with ice maker", server_ip, kitchen_server_port, Smarthome.FridgeWithIceMakerPrx),
+        Device("Fridge3", "kitchen-devices", "fridge with ice maker", server_ip, kitchen_server_port, Smarthome.FridgeWithProductsMonitoringPrx)
+    ]
 
     communicator = None
 
     try:
-        communicator = Ice.initialize(ice_args)
+        communicator = Ice.initialize()
 
-        devices = asyncio.run(get_devices(server_ip, server_port, communicator))
+        asyncio.run(connect_devices(devices, communicator))
 
-        loop(devices)
+        loop(devices, communicator)
 
     except Exception as ex:
         print(str(ex))

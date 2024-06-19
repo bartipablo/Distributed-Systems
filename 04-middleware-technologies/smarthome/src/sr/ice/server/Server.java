@@ -5,12 +5,7 @@ import com.zeroc.Ice.Identity;
 import com.zeroc.Ice.ObjectAdapter;
 import com.zeroc.Ice.Util;
 
-import Smarthome.Mower;
 import sr.ice.server.devices.DeviceImp;
-import sr.ice.server.devices.fridges.FridgeImp;
-import sr.ice.server.devices.fridges.FridgeWithIceMakerImp;
-import sr.ice.server.devices.fridges.FridgeWithProductsMonitoring;
-import sr.ice.server.devices.mowers.MowerImp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,40 +21,32 @@ public class Server {
 
     private final ObjectAdapter adapter;
 
-    private final String ADAPTER_NAME = "Adapter1";
+    private final String categoryName;
 
     private final List<DeviceImp> devices = new ArrayList<>();
 
 
-    Server(String IP, int port, String[] iceArgs) {
+    Server(String IP, int port, List<DeviceImp> devices, String category, String adapterName) {
         this.IP = IP;
         this.port = port;
+        this.devices.addAll(devices);
+        this.categoryName = category;
 
-        communicator = Util.initialize(iceArgs);
+        communicator = Util.initialize();
 
         String connectionEndpoints = "tcp -h " + IP + " -p " + port + " : udp -h " + IP + " -p " + port;
-        adapter = communicator.createObjectAdapterWithEndpoints(ADAPTER_NAME, connectionEndpoints);
+        adapter = communicator.createObjectAdapterWithEndpoints(adapterName, connectionEndpoints);
 
         initDevices();
     }
 
 
     private void initDevices() {
-        FridgeImp fridge = new FridgeImp("Fridge1");
-        FridgeWithIceMakerImp fridgeWithIceMaker = new FridgeWithIceMakerImp("FridgeWithIceMaker1");
-        FridgeWithProductsMonitoring fridgeWithProductsMonitoring = new FridgeWithProductsMonitoring("FridgeWithProductsMonitoring1");
-        MowerImp mower = new MowerImp("Mower1");
-
-        devices.add(fridge);
-        devices.add(fridgeWithIceMaker);
-        devices.add(fridgeWithProductsMonitoring);
-        devices.add(mower);
-
-        adapter.add(fridge, new Identity(fridge.getId(), "fridge"));
-        adapter.add(fridgeWithIceMaker, new Identity(fridgeWithIceMaker.getId(), "fridge"));
-        adapter.add(fridgeWithProductsMonitoring, new Identity(fridgeWithProductsMonitoring.getId(), "fridge"));
-        adapter.add(mower, new Identity(mower.getId(), "mower"));
+        for (DeviceImp device : devices) {
+            adapter.add(device, new Identity(device.getId(), categoryName));
+        }
     }
+
 
     private void listDevices() {
         for (DeviceImp device : devices) {
