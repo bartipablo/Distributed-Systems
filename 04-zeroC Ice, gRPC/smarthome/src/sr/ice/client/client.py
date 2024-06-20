@@ -253,7 +253,7 @@ def main():
         Device("Sprinkler2", "yard-devices", "sprinkler", server_ip, yard_server_port, Smarthome.SprinklerPrx),
         Device("Fridge1", "kitchen-devices", "fridge", server_ip, kitchen_server_port, Smarthome.FridgePrx),
         Device("Fridge2", "kitchen-devices", "fridge with ice maker", server_ip, kitchen_server_port, Smarthome.FridgeWithIceMakerPrx),
-        Device("Fridge3", "kitchen-devices", "fridge with ice maker", server_ip, kitchen_server_port, Smarthome.FridgeWithProductsMonitoringPrx)
+        Device("Fridge3", "kitchen-devices", "fridge with product monitoring", server_ip, kitchen_server_port, Smarthome.FridgeWithProductsMonitoringPrx)
     ]
 
     communicator = None
