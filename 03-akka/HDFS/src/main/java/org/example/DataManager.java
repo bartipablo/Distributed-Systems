@@ -1,17 +1,18 @@
 package org.example;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import org.example.chuncks.PersistedDataChunkId;
-import org.example.config.Configuration;
 import org.example.persistence.Artefact;
 import org.example.persistence.PersistenceManager;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -19,13 +20,27 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
 
     private final PersistenceManager persistenceManager;
 
-    public DataManager(ActorContext<DataManager.Command> context, Configuration configuration) {
+    private final Map<Integer, ActorRef<DataNode.Command>> dataNodeActors;
+
+    private final ActorRef<Output.Command> outputActor;
+
+    private DataManager(ActorContext<DataManager.Command> context,
+                       Map<Integer, ActorRef<DataNode.Command>> dataNodeActors,
+                       ActorRef<Output.Command> outputActor,
+                       int replicationQuantity) {
         super(context);
-        this.persistenceManager = new PersistenceManager(configuration);
+        this.persistenceManager = new PersistenceManager(dataNodeActors.keySet().stream().toList(), replicationQuantity);
+        this.dataNodeActors = dataNodeActors;
+        this.outputActor = outputActor;
+
+        context.spawn(Refresher.create(20_000, context.getSelf(), new Refresh()), "DataManagerRefresher");
     }
 
-    static Behavior<DataManager.Command> create(Configuration configuration) {
-        return Behaviors.setup(context -> new DataManager(context, configuration));
+
+    static Behavior<DataManager.Command> create(Map<Integer, ActorRef<DataNode.Command>> dataNodeActors,
+                                                ActorRef<Output.Command> outputActor,
+                                                int replicationQuantity) {
+        return Behaviors.setup(context -> new DataManager(context, dataNodeActors, outputActor, replicationQuantity));
     }
 
     /***********************************
@@ -35,31 +50,31 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
 
     public record DeleteArtefact (
        Artefact artefact
-    ) implements Command, Serializable {}
+    ) implements Command {}
 
 
     public record UploadArtefact (
         Artefact artefact
-    ) implements Command, Serializable {}
+    ) implements Command {}
     
     
-    public record fetchArtefact (
+    public record FetchArtefact (
         Artefact artefact
-    ) implements Command, Serializable {}
+    ) implements Command {}
 
 
     public record ChunkConfirmation (
         PersistedDataChunkId persistedChunkId
-    ) implements Command, Serializable {}
+    ) implements Command {}
 
 
     public record ChunkRemovedConfirmation (
         PersistedDataChunkId persistedChunkId
-    ) implements Command, Serializable {}
+    ) implements Command {}
 
 
-    public record MonitorProcessing (
-    ) implements Command, Serializable {}
+    public record Refresh(
+    ) implements Command {}
 
     /***********************************
      MESSAGES PROTOCOL
@@ -69,16 +84,20 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
         return newReceiveBuilder()
                 .onMessage(DeleteArtefact.class, message -> {
                     persistenceManager.removeArtefact(message.artefact);
-                    distributeResources();
+                    List<PersistedDataChunkId> deletedChunks = persistenceManager.getDeletedChunksByArtefactId(message.artefact.getId());
+                    distributeDeletedChunks(deletedChunks);
                     return Behaviors.same();
                 })
                 .onMessage(UploadArtefact.class, message -> {
                     persistenceManager.uploadArtefact(message.artefact);
-                    distributeResources();
+                    List<PersistedDataChunkId> deletedChunks = persistenceManager.getDeletedChunksByArtefactId(message.artefact.getId());
+                    List<PersistedDataChunkId> unconfirmedChunks = persistenceManager.getUnconfirmedChunksByArtefactId(message.artefact.getId());
+                    distributeDeletedChunks(deletedChunks);
+                    distributeUnconfirmedChunks(unconfirmedChunks);
                     return Behaviors.same();
                 })
-                .onMessage(fetchArtefact.class, message -> {
-                    // TO DO.
+                .onMessage(FetchArtefact.class, message -> {
+                    fetchArtefact(message.artefact);
                     return Behaviors.same();
                 })
                 .onMessage(ChunkConfirmation.class, message -> {
@@ -89,18 +108,16 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
                     persistenceManager.confirmDeleteChunk(message.persistedChunkId);
                     return Behaviors.same();
                 })
-                .onMessage(MonitorProcessing.class, message -> {
-                    // TO DO.
+                .onMessage(Refresh.class, message -> {
+                    distributeAll();
                     return Behaviors.same();
                 })
                 .build();
     }
-    
-    
-    private void distributeResources() {
-        List<PersistedDataChunkId> chunksToConfirm = persistenceManager.getUnconfirmedChunks();
 
-        for (PersistedDataChunkId chunkId : chunksToConfirm) {
+
+    private void distributeUnconfirmedChunks(List<PersistedDataChunkId> chunks) {
+        for (PersistedDataChunkId chunkId : chunks) {
             Optional<Artefact> artefact = persistenceManager.getArtefact(chunkId.chunkId().artefactId());
             if (artefact.isEmpty()) {
                 throw new RuntimeException("Artefact not found");
@@ -110,14 +127,34 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
             if (content.isEmpty()) {
                 throw new RuntimeException("Chunk content not found");
             }
-            // TO DO: send message to DataNode to confirm chunk.
-        }
 
-        List<PersistedDataChunkId> chunksToDelete = persistenceManager.getDeletedChunks();
-
-        for (PersistedDataChunkId chunkId : chunksToDelete) {
-            // TO DO: send message to DataNode to confirm chunk deletion.
+            var dataNodeActor = dataNodeActors.get(chunkId.dataNodeId());
+            dataNodeActor.tell(
+                    new DataNode.AddChunk(getContext().getSelf() ,chunkId, content.get())
+            );
         }
+    }
+
+
+    private void distributeDeletedChunks(List<PersistedDataChunkId> deletedChunks) {
+        for (PersistedDataChunkId chunkId : deletedChunks) {
+            var dataNodeActor = dataNodeActors.get(chunkId.dataNodeId());
+            dataNodeActor.tell(
+                    new DataNode.RemoveChunk(getContext().getSelf(), chunkId)
+            );
+        }
+    }
+
+    
+    
+    private void distributeAll() {
+        distributeUnconfirmedChunks(persistenceManager.getUnconfirmedChunks());
+        distributeDeletedChunks(persistenceManager.getDeletedChunks());
+    }
+
+
+    private void fetchArtefact(Artefact artefact) {
+
     }
 
 

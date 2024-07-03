@@ -20,4 +20,13 @@ public record ChunkId (
     public int hashCode() {
         return Objects.hash(id, artefactId);
     }
+
+
+    @Override
+    public String toString() {
+        return "ChunkId{" +
+                "id=" + id +
+                ", artefactId='" + artefactId + '\'' +
+                '}';
+    }
 }

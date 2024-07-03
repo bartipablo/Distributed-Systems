@@ -10,6 +10,12 @@ public class Artefact {
 
     private final Map<ChunkId, String> contents;
 
+
+    public Artefact(String id) {
+        this(id, "", 1);
+    }
+
+
     public Artefact(String id, String content, int chunkSize) {
         if (chunkSize <= 0) {
             throw new IllegalArgumentException("Chunk size must be greater than 0");

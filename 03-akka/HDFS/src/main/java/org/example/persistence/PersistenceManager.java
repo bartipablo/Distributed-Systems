@@ -2,7 +2,6 @@ package org.example.persistence;
 
 import org.example.chuncks.ChunkId;
 import org.example.chuncks.PersistedDataChunkId;
-import org.example.config.Configuration;
 
 import java.util.*;
 
@@ -12,19 +11,22 @@ public class PersistenceManager {
     private final Set<PersistedDataChunkId> unconfirmedChunks;
     private final Set<PersistedDataChunkId> deletedChunks;
     private final Set<Artefact> artefacts;
-    private final Map<String, Set<PersistedDataChunkId>> artefactToChunksMap;
-    private final Configuration config;
+    private final Map<String, Set<PersistedDataChunkId>> artefactIdToChunksContentMap;
+    private final List<Integer> dataNodeIds;
+    private final int replicationQuantity;
 
     private int actualVersionId = 0;
     private int actualDataNodeId = 0;
 
-    public PersistenceManager(Configuration config) {
-        this.config = config;
+    public PersistenceManager(List<Integer> dataNodeIds, int replicationQuantity) {
+        this.dataNodeIds = dataNodeIds;
+        this.replicationQuantity = replicationQuantity;
+
         confirmedChunks = new HashSet<>();
         unconfirmedChunks = new HashSet<>();
         deletedChunks = new HashSet<>();
         artefacts = new HashSet<>();
-        artefactToChunksMap = new HashMap<>();
+        artefactIdToChunksContentMap = new HashMap<>();
     }
 
 
@@ -35,14 +37,14 @@ public class PersistenceManager {
 
         List<PersistedDataChunkId> persistedChunksIds = artefact.getChunksIds()
                 .stream()
-                .map(chunkId -> assignChunkToDataNodes(chunkId, config.getReplicationQuantity(), config.getDataNodesQuantity()))
+                .map(chunkId -> assignChunkToDataNodes(chunkId, replicationQuantity))
                 .flatMap(Collection::stream)
                 .toList();
 
         artefacts.add(artefact);
         unconfirmedChunks.addAll(persistedChunksIds);
 
-        artefactToChunksMap.put(artefact.getId(), new HashSet<>(persistedChunksIds));
+        artefactIdToChunksContentMap.put(artefact.getId(), new HashSet<>(persistedChunksIds));
     }
 
 
@@ -56,12 +58,12 @@ public class PersistenceManager {
 
         deleteChunksByArtefactId(confirmedChunks, artefactId);
         deleteChunksByArtefactId(unconfirmedChunks, artefactId);
-        artefactToChunksMap.remove(artefactId);
+        artefactIdToChunksContentMap.remove(artefactId);
     }
 
 
     private void deleteChunksByArtefactId(Set<PersistedDataChunkId> chunks, String artefactId) {
-        Set<PersistedDataChunkId> chunksToDelete = artefactToChunksMap.getOrDefault(artefactId, Collections.emptySet());
+        Set<PersistedDataChunkId> chunksToDelete = artefactIdToChunksContentMap.getOrDefault(artefactId, Collections.emptySet());
 
         for (PersistedDataChunkId chunkId : chunksToDelete) {
             if (chunks.contains(chunkId)) {
@@ -74,17 +76,16 @@ public class PersistenceManager {
 
     private List<PersistedDataChunkId> assignChunkToDataNodes(
             ChunkId chunkId,
-            int replicationQuantity,
-            int dataNodesQuantity
+            int replicationQuantity
     ) {
         List<PersistedDataChunkId> result = new ArrayList<>();
 
         for (int i = 0; i < replicationQuantity; i++) {
-            PersistedDataChunkId persistedChunkId = new PersistedDataChunkId(chunkId, actualDataNodeId, actualVersionId);
+            PersistedDataChunkId persistedChunkId = new PersistedDataChunkId(chunkId, dataNodeIds.get(actualDataNodeId), actualVersionId);
             result.add(persistedChunkId);
 
             actualDataNodeId++;
-            if (actualDataNodeId >= dataNodesQuantity) actualDataNodeId = 0;
+            if (actualDataNodeId >= dataNodeIds.size()) actualDataNodeId = 0;
         }
 
         actualVersionId++;
@@ -100,7 +101,7 @@ public class PersistenceManager {
             confirmedChunks.add(persistedChunkId);
 
             String artefactId = persistedChunkId.chunkId().artefactId();
-            Set<PersistedDataChunkId> persistedChunksForArtefactId = artefactToChunksMap.getOrDefault(artefactId, Collections.emptySet());
+            Set<PersistedDataChunkId> persistedChunksForArtefactId = artefactIdToChunksContentMap.getOrDefault(artefactId, Collections.emptySet());
 
             for (PersistedDataChunkId chunkId : persistedChunksForArtefactId) {
                 if (unconfirmedChunks.contains(chunkId)) {
@@ -123,8 +124,32 @@ public class PersistenceManager {
     }
 
 
+    public List<PersistedDataChunkId> getUnconfirmedChunksByArtefactId(String artefactId) {
+        Set<PersistedDataChunkId> persistedChunksForArtefactId = artefactIdToChunksContentMap.getOrDefault(artefactId, Collections.emptySet());
+        return unconfirmedChunks.stream()
+                .filter(persistedChunksForArtefactId::contains)
+                .toList();
+    }
+
+
     public List<PersistedDataChunkId> getDeletedChunks() {
         return new ArrayList<>(deletedChunks);
+    }
+
+
+    public List<PersistedDataChunkId> getDeletedChunksByArtefactId(String artefactId) {
+        Set<PersistedDataChunkId> persistedChunksForArtefactId = artefactIdToChunksContentMap.getOrDefault(artefactId, Collections.emptySet());
+        return deletedChunks.stream()
+                .filter(persistedChunksForArtefactId::contains)
+                .toList();
+    }
+
+
+    public List<PersistedDataChunkId> getConfirmedChunksByArtefactId(String artefactId) {
+        Set<PersistedDataChunkId> persistedChunksForArtefactId = artefactIdToChunksContentMap.getOrDefault(artefactId, Collections.emptySet());
+        return confirmedChunks.stream()
+                .filter(persistedChunksForArtefactId::contains)
+                .toList();
     }
 
 

@@ -54,13 +54,13 @@ public class DataNode extends AbstractBehavior<DataNode.Command> {
 
 
     public record GetChunk (
-            ActorRef<> sender,
+            ActorRef<ArtefactFetcher.Command> sender,
             PersistedDataChunkId persistedChunkId
     ) implements Command {}
 
 
     public record ListChunks (
-            ActorRef<> sender
+            ActorRef<Output.Command> sender
     ) implements Command {}
 
 
@@ -73,7 +73,7 @@ public class DataNode extends AbstractBehavior<DataNode.Command> {
 
 
     public record GetState (
-            ActorRef<> sender
+            ActorRef<Output.Command> sender
     ) implements Command {}
     /***********************************
      MESSAGES PROTOCOL
