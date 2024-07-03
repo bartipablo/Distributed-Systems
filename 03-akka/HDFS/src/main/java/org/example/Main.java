@@ -22,15 +22,16 @@ public class Main {
         main.startCommandListener();
     }
 
-    private final String uploadCommand = "upload\\s+(\\w+)\\s+(\\w+)";
-    private final String deleteCommand = "delete\\s+(\\w+)";
-    private final String fetchCommand = "fetch\\s+(\\w+)";
-    private final String pauseCommand = "pause\\s+(\\d+)";
-    private final String resumeCommand = "resume\\s+(\\d+)";
-    private final String nodeStatusCommand = "nodestatus\\s+(\\d+)";
-    private final String artefactStatusCommand = "artefactstatus\\s+(\\w+)";
-    private final String listNodeCommand = "list\\s+(\\d+)";
-    private final String helpCommand = "help";
+    private static final String uploadCommand = "upload\\s+(\\w+)\\s+(\\w+)";
+    private static final String deleteCommand = "delete\\s+(\\w+)";
+    private static final String fetchCommand = "fetch\\s+(\\w+)";
+    private static final String pauseCommand = "pause\\s+(\\d+)";
+    private static final String resumeCommand = "resume\\s+(\\d+)";
+    private static final String nodeStatusCommand = "nodestatus\\s+(\\d+)";
+    private static final String artefactStatusCommand = "artefactstatus\\s+(\\w+)";
+    private static final String listNodeCommand = "list\\s+(\\d+)";
+    private static final String helpCommand = "help";
+    private static final String exitCommand = "exit";
 
     private final ActorSystem<RootManager.Command> actorSystem;
 
@@ -80,6 +81,9 @@ public class Main {
                 else if (command.matches(helpCommand)) {
                     printHelp();
                 }
+                else if (command.matches(exitCommand)) {
+                    System.exit(0);
+                }
                 else {
                     System.out.println("Unrecognized command: " + command);
                 }
@@ -124,5 +128,7 @@ public class Main {
         System.out.println("nodestatus <nodeId>");
         System.out.println("artefactstatus <artifactName>");
         System.out.println("list <nodeId>");
+        System.out.println("help");
+
     }
 }

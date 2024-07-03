@@ -10,7 +10,7 @@ public class PersistenceManager {
     private final Set<PersistedDataChunkId> confirmedChunks;
     private final Set<PersistedDataChunkId> unconfirmedChunks;
     private final Set<PersistedDataChunkId> deletedChunks;
-    private final Set<Artefact> artefacts;
+    private final Map<String, Artefact> artefactIdToArtefacts;
     private final Map<String, Set<PersistedDataChunkId>> artefactIdToChunksContentMap;
     private final List<Integer> dataNodeIds;
     private final int replicationQuantity;
@@ -25,13 +25,13 @@ public class PersistenceManager {
         confirmedChunks = new HashSet<>();
         unconfirmedChunks = new HashSet<>();
         deletedChunks = new HashSet<>();
-        artefacts = new HashSet<>();
+        artefactIdToArtefacts = new HashMap<>();
         artefactIdToChunksContentMap = new HashMap<>();
     }
 
 
     public void uploadArtefact(Artefact artefact) {
-        if (artefacts.contains(artefact)) {
+        if (artefactIdToArtefacts.containsKey(artefact.getId())) {
             removeArtefact(artefact);
         }
 
@@ -41,7 +41,7 @@ public class PersistenceManager {
                 .flatMap(Collection::stream)
                 .toList();
 
-        artefacts.add(artefact);
+        artefactIdToArtefacts.put(artefact.getId(), artefact);
         unconfirmedChunks.addAll(persistedChunksIds);
 
         artefactIdToChunksContentMap.put(artefact.getId(), new HashSet<>(persistedChunksIds));
@@ -49,11 +49,11 @@ public class PersistenceManager {
 
 
     public void removeArtefact(Artefact artefact) {
-        if (!artefacts.contains(artefact)) {
+        if (!artefactIdToArtefacts.containsKey(artefact.getId())) {
             return;
         }
 
-        artefacts.remove(artefact);
+        artefactIdToArtefacts.remove(artefact.getId());
         String artefactId = artefact.getId();
 
         deleteChunksByArtefactId(confirmedChunks, artefactId);
@@ -107,9 +107,10 @@ public class PersistenceManager {
                 if (unconfirmedChunks.contains(chunkId)) {
                     return;
                 }
-                Artefact artefact = artefacts.stream().filter(a -> a.getId().equals(artefactId)).findFirst().orElseThrow();
-                artefact.removeChunkContent(chunkId.chunkId());
             }
+
+            Artefact artefact = artefactIdToArtefacts.get(artefactId);
+            artefact.removeChunkContent(persistedChunkId.chunkId());
         }
     }
 
@@ -154,6 +155,11 @@ public class PersistenceManager {
 
 
     public Optional<Artefact> getArtefact(String artefactId) {
-        return artefacts.stream().filter(a -> a.getId().equals(artefactId)).findFirst();
+        return Optional.ofNullable(artefactIdToArtefacts.get(artefactId));
+    }
+
+
+    public Map<ChunkId, String> getArtefactContents(String artefactId) {
+        return artefactIdToArtefacts.get(artefactId).getContents();
     }
 }

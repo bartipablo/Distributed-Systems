@@ -48,6 +48,16 @@ public class Output extends AbstractBehavior<Output.Command> {
         int nodeId,
         String status
     ) implements Output.Command {}
+
+
+    public record PrintArtefactStatus (
+        String artefactId,
+        Map<ChunkId, Boolean> chunkIsRemote,
+        int totalChunks,
+        int confirmedChunksQuantity,
+        int unconfirmedChunksQuantity,
+        int deletedChunksQuantity
+    ) implements Output.Command {}
     /***********************************
      MESSAGES PROTOCOL
      **********************************/

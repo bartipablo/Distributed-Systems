@@ -6,14 +6,14 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import org.example.chuncks.ChunkId;
 import org.example.chuncks.PersistedDataChunkId;
 import org.example.persistence.Artefact;
 import org.example.persistence.PersistenceManager;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class DataManager extends AbstractBehavior<DataManager.Command> {
@@ -73,6 +73,11 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
     ) implements Command {}
 
 
+    public record ArtefactStatus (
+        Artefact artefact
+    ) implements Command {}
+
+
     public record Refresh(
     ) implements Command {}
 
@@ -112,6 +117,10 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
                     distributeAll();
                     return Behaviors.same();
                 })
+                .onMessage(ArtefactStatus.class, message -> {
+                    artefactStatusHandler(message.artefact.getId());
+                    return Behaviors.same();
+                })
                 .build();
     }
 
@@ -145,16 +154,49 @@ public class DataManager extends AbstractBehavior<DataManager.Command> {
         }
     }
 
-    
-    
+
     private void distributeAll() {
         distributeUnconfirmedChunks(persistenceManager.getUnconfirmedChunks());
         distributeDeletedChunks(persistenceManager.getDeletedChunks());
     }
 
 
-    private void fetchArtefact(Artefact artefact) {
+    private void artefactStatusHandler(String artefactId) {
+        Optional<Artefact> optionalArtefact = persistenceManager.getArtefact(artefactId);
+        if (optionalArtefact.isEmpty()) {
+            outputActor.tell(new Output.PrintErrorMessages("Artefact not found."));
+            return;
+        }
 
+        Artefact artefact = optionalArtefact.get();
+        Set<ChunkId> chunkIds = artefact.getChunksIds();
+
+        int totalChunks = chunkIds.size();
+        int confirmedChunks = persistenceManager.getConfirmedChunksByArtefactId(artefact.getId()).size();
+        int unconfirmedChunks = persistenceManager.getUnconfirmedChunksByArtefactId(artefact.getId()).size();
+        int deletedChunks = persistenceManager.getDeletedChunksByArtefactId(artefact.getId()).size();
+
+        Map<ChunkId, Boolean> chunkIsRemote = chunkIds.stream()
+                .collect(Collectors.toMap(
+                        chunkId -> chunkId,
+                        chunkId -> artefact.getContent(chunkId).isEmpty()
+                ));
+
+        outputActor.tell(new Output.PrintArtefactStatus(artefact.getId(), chunkIsRemote, totalChunks, confirmedChunks, unconfirmedChunks, deletedChunks));
+    }
+
+
+    private void fetchArtefact(Artefact artefact) {
+        var artefactFetcher = getContext().spawn(
+                ArtefactFetcher.create(
+                        dataNodeActors,
+                        persistenceManager.getArtefactContents(artefact.getId()),
+                        persistenceManager.getConfirmedChunksByArtefactId(artefact.getId()),
+                        outputActor,
+                        artefact.getId()),
+                "ArtefactFetcher-" + artefact.getId() + "-" + UUID.randomUUID().toString());
+
+        artefactFetcher.tell(new ArtefactFetcher.Start());
     }
 
 

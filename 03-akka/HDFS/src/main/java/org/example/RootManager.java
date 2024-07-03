@@ -42,7 +42,7 @@ public class RootManager extends AbstractBehavior<RootManager.Command> {
 
 
     public static Behavior<RootManager.Command> create(Configuration config) {
-        return Behaviors.setup(context -> new RootManager(context, config)));
+        return Behaviors.setup(context -> new RootManager(context, config));
     }
 
     /***********************************

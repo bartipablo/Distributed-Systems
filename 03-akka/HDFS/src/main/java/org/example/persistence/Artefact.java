@@ -75,6 +75,11 @@ public class Artefact {
     }
 
 
+    public Map<ChunkId, String> getContents() {
+        return new HashMap<>(contents);
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
