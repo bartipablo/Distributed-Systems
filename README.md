@@ -6,11 +6,11 @@ Realtime chat. <br />
 ## 2. REST
 Weather APIs using external APIs. <br />
 
-## 3. Actor Model - RAY
+## 3. Actor Model - Ray
 Monte Carlo methods using actor models. <br />
 
 ## 4. RPC, OOM - gRPC, zeroC Ice
-Smarthome. <br />
+Smarthome management system. <br />
 Dynamic gRPC call. <br />
 
 ## 5. MOM - RabbitMQ
