@@ -13,7 +13,7 @@ Monte Carlo methods using actor models. <br />
 Smarthome. <br />
 Dynamic gRPC call. <br />
 
-## 5. MOM - gRPC, zeroC Ice
+## 5. MOM - RabbitMQ
 Clinic management system. <br />
 
 ## 6. Zookeeper
