@@ -52,4 +52,4 @@ gradle-app.setting
 
 .DS_Store
 target/
-
+.idea/
