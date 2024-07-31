@@ -1,4 +1,4 @@
-# Group Chat
+# Real-time Chat
 
 ## Description
 
